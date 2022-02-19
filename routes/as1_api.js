@@ -96,12 +96,12 @@ router.post('/game_fetchsongid_unicodePB.php', function (req, res, next) {
 
         var apiResult;
         if (song == null) {
-            apiResult = await spotifyApi.searchTracks(req.body.artist + req.body.song, { limit: 1, locale: 'en_US' });
+            apiResult = await spotifyApi.searchTracks(req.body.artist + " " + req.body.song, { limit: 1, locale: 'en_US' });
             console.log('Search for ' + req.body.artist + req.body.song + ' returned ' + apiResult.body.tracks.total + ' tracks');
         }
 
         if (song == null) {
-            if (apiResult != null) {
+            if (apiResult.body.tracks.items[0]) {
                 song = await database.Song.create({
                     title: req.body.song,
                     artist: req.body.artist,

@@ -1,5 +1,5 @@
 {
-  "name": "audioexpress",
+  "name": "wavebreaker",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -21,6 +21,7 @@
     "express-svelte": "^1.0.8",
     "express-xml-bodyparser": "^0.3.0",
     "http-errors": "~2.0.0",
+    "lodash": "^4.17.21",
     "morgan": "~1.10.0",
     "passport": "^0.5.2",
     "passport-discord": "^0.1.4",

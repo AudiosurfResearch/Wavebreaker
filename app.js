@@ -62,7 +62,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(expressSvelte({
+  // Support legacy browsers only on production
+  legacy: process.env.NODE_ENV !== 'development',
   hydratable: true,
+  viewsDirname: __dirname + '/views',
+  bundlesDirname: __dirname + '/public/dist',
+  bundlesHost: '/public/dist',
+  bundlesPattern: '[name][extname]',
   preprocess: [sveltePreprocess({
     postcss: {
       plugins: [

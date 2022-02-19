@@ -6,6 +6,7 @@
     import dayjs from "dayjs";
     import relativeTime from "dayjs/plugin/relativeTime";
     dayjs.extend(relativeTime);
+    import _ from "lodash";
 
     function msToMMSS(ms) {
         var minutes = Math.floor(ms / 60000);
@@ -39,10 +40,6 @@
         return characters[id];
     }
 
-    function handleClick() {
-		alert('clicked')
-	}
-
     var leagueid = 0;
 </script>
 
@@ -50,19 +47,22 @@
 
 <div class="box mx-6">
     <figure class="media">
-        <p class="media-left image is-128x128">
-            <img src={$song.coverurl} alt="Song cover" />
-        </p>
-
-        <button type="button" class="button" on:click={handleClick}>
-            yeah
-        </button>
+        {#if $song.spotifyid}
+            <p class="media-left image is-128x128">
+                <img src={$song.coverurl} alt="Song cover" />
+            </p>
+        {/if}
 
         <div class="media-content">
             <div class="content">
                 <p>
-                    <strong>{$song.fullSpotifyTitle}</strong>
-                    (alt: {$song.artist} - {$song.title})
+                    {#if $song.spotifyid}
+                        <strong>{$song.fullSpotifyTitle}</strong>
+                        (alt: {$song.artist} - {$song.title})
+                    {:else}
+                        <strong>{$song.artist} - {$song.title}</strong>
+                    {/if}
+
                     <br />
                     Submitted scores: {$song.Scores.length}
                     <br />
@@ -76,12 +76,12 @@
     <div class="tabs is-boxed">
         <ul>
             <li class:is-active={leagueid === 0}>
-                <a on:click={() => handleClick()}>
+                <a on:click={() => (leagueid = 0)}>
                     <span>Casual</span>
                 </a>
             </li>
-            <li>
-                <a type="button" on:click={handleClick}>
+            <li class:is-active={leagueid === 1}>
+                <a on:click={() => (leagueid = 1)}>
                     <span>Pro</span>
                 </a>
             </li>
@@ -106,7 +106,7 @@
             </tr>
         </thead>
         <tbody>
-            {#each $song.Scores as score, i}
+            {#each _.orderBy($song.Scores, (i) => i.score, "desc") as score, i}
                 {#if score.leagueid === leagueid}
                     <tr>
                         <th><strong>{i + 1}</strong></th>
