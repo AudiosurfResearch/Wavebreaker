@@ -1,0 +1,53 @@
+<!doctype html>
+<html class="has-navbar-fixed-top" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <%= head %>
+    <% if (style) { %><style type="text/css"><%= style %></style><% } %>
+    <% if (hydratable === true && legacy === true && scriptModern != null) { %>
+    <script defer type="module" src="<%= scriptModern %>"></script>
+    <% } else if (hydratable === true && legacy === false && scriptModern != null) { %>
+    <script defer type="text/javascript" src="<%= scriptModern %>"></script>
+    <% } %>
+</head>
+<body tabindex="-1">
+<div>
+<%= html %>
+
+<% /* We append these scripts at then end of the body to avoid blocking the rendering. */ %>
+<% /* It can be done here because the modern script is deferred and it will be executed just before the DOMContentLoaded event is triggered. */ %>
+<% if (globalProps) { %><script type="text/javascript">window._GLOBAL_PROPS_ = <%= devalue(globalProps) %>;</script><% } %>
+<% if (globalStores) { %><script type="text/javascript">window._GLOBAL_STORES_ = <%= devalue(globalStores) %>;</script><% } %>
+<% if (props) {       %><script type="text/javascript">window._PROPS_ = <%= devalue(props) %>;</script><% } %>
+
+<% if (hydratable === true && legacy === true && scriptLegacy != null) { %>
+<% /* Fix for Safari 10.1 taken from https://gist.github.com/samthor/64b114e4a4f539915a95b91ffd340acc */ %>
+<script type="text/javascript">
+    (function() {
+        var d = document;
+        var c = d.createElement('script');
+        if (!('noModule' in c) && 'onbeforeload' in c) {
+            var s = false;
+            d.addEventListener('beforeload', function(e) {
+                if (e.target === c) {
+                    s = true;
+                }
+                else if (!e.target.hasAttribute('nomodule') || !s) {
+                    return;
+                }
+                e.preventDefault();
+            }, true);
+
+            c.type = 'module';
+            c.src = '.';
+            d.head.appendChild(c);
+            c.remove();
+        }
+    }());
+</script>
+<script defer nomodule src="<%= scriptLegacy %>"></script>
+<% } %>
+</div>
+</body>
+</html>

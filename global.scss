@@ -1,0 +1,26 @@
+@import "https://use.fontawesome.com/releases/v5.3.1/css/all.css";
+
+:root {
+    padding: 2em;
+}
+
+body {
+    margin-top: 0.5rem !important;
+}
+
+$primary: #2196f3;
+$link: #2196f3;
+
+@import "bulma/sass/utilities/_all.sass";
+@import "bulma/sass/base/_all.sass";
+@import "bulma/sass/helpers/_all.sass";
+@import "bulma/sass/elements/button.sass";
+@import "bulma/sass/elements/container.sass";
+@import "bulma/sass/elements/title.sass";
+@import "bulma/sass/elements/image.sass";
+@import "bulma/sass/elements/box.sass";
+@import "bulma/sass/elements/table.sass";
+@import "bulma/sass/components/media.sass";
+@import "bulma/sass/components/navbar.sass";
+@import "bulma/sass/components/tabs.sass";
+@import "bulma/sass/layout/section.sass";

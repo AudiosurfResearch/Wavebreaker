@@ -1,0 +1,44 @@
+{
+  "name": "audioexpress",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "set NODE_ENV=development && rollup -c -w",
+    "start": "node ./bin/www",
+    "prebuild": "del-cli public/dist",
+    "postinstall": "patch-package"
+  },
+  "dependencies": {
+    "autoprefixer": "^10.4.2",
+    "body-parser": "^1.19.1",
+    "bulma": "^0.9.3",
+    "cookie-parser": "~1.4.6",
+    "dayjs": "^1.10.7",
+    "debug": "~4.3.3",
+    "dotenv": "^16.0.0",
+    "express": "~4.17.2",
+    "express-session": "^1.17.2",
+    "express-svelte": "^1.0.8",
+    "express-xml-bodyparser": "^0.3.0",
+    "http-errors": "~2.0.0",
+    "lodash": "^4.17.21",
+    "morgan": "~1.10.0",
+    "passport": "^0.5.2",
+    "passport-discord": "^0.1.4",
+    "passport-steam": "^1.0.17",
+    "postcss-scss": "^4.0.3",
+    "sass": "^1.49.7",
+    "sequelize": "^6.16.1",
+    "serve-static": "^1.14.2",
+    "spotify-web-api-node": "^5.0.2",
+    "sqlite3": "^4.2.0",
+    "svelte-preprocess": "^4.10.3",
+    "xml2js": "^0.4.23"
+  },
+  "devDependencies": {
+    "patch-package": "^6.4.7",
+    "postcss": "^8.4.6",
+    "svelte-language-server": "^0.14.21"
+  }
+}
