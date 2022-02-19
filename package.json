@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "build": "rollup -c",
-    "watch": "set NODE_ENV=development && rollup -c -w",
+    "watch": "NODE_ENV=development rollup -c -w",
     "start": "node ./bin/www",
-    "prebuild": "del-cli public/dist",
-    "postinstall": "patch-package"
+    "prebuild": "del-cli public/dist"
   },
   "dependencies": {
     "autoprefixer": "^10.4.2",
@@ -22,7 +21,6 @@
     "express-svelte": "^1.0.8",
     "express-xml-bodyparser": "^0.3.0",
     "http-errors": "~2.0.0",
-    "lodash": "^4.17.21",
     "morgan": "~1.10.0",
     "passport": "^0.5.2",
     "passport-discord": "^0.1.4",
@@ -37,7 +35,7 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "patch-package": "^6.4.7",
+    "del-cli": "^4.0.1",
     "postcss": "^8.4.6",
     "svelte-language-server": "^0.14.21"
   }
