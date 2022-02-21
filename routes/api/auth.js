@@ -19,7 +19,7 @@ router.get('/auth/steam/return', passport.authenticate('steam', {
     function (req, res) {
         // Successful authentication, redirect home.
         console.log("Login success!");
-        res.redirect('/');
+        res.redirect('/first-time/');
     });
 
 router.get('/auth/logout', function (req, res) {

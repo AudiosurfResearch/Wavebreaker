@@ -18,6 +18,7 @@ const util = require('util')
 var passport = require('passport');
 var SteamStrategy = require('passport-steam').Strategy;
 var session = require('express-session');
+const { database } = require('./database');
 
 var app = express();
 
@@ -30,6 +31,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(logger('dev'));
 
 passport.serializeUser(function (user, done) {
+
   done(null, user);
 });
 
@@ -43,10 +45,7 @@ passport.use(new SteamStrategy({
   apiKey: process.env.STEAM_API_KEY
 },
   function (identifier, profile, done) {
-    process.nextTick(function () {
-      profile.identifier = identifier;
-      return done(null, profile);
-    });
+    database.findUserSteam(identifier)
   }
 ));
 
@@ -91,6 +90,15 @@ app.use('//as', as1apiRouter);
 
 //Site API
 app.use('/api', authRouter);
+
+//Redirect people with uninitialized accounts to account initialization
+app.use(function (req, res, next) {
+  if (req.baseUrl != "/account-init" && req.isAuthenticated() && !req.user.username) {
+    res.redirect('/account-init');
+  } else {
+    next();
+  }
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

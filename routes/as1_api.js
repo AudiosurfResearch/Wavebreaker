@@ -6,28 +6,6 @@ const builder = new xml2js.Builder();
 const database = require('../database');
 const { Op, Model, DataTypes } = require('sequelize');
 let dotenv = require('dotenv').config();
-var SpotifyWebApi = require('spotify-web-api-node');
-var spotifyApi = new SpotifyWebApi({
-    clientId: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri: process.env.SPOTIFY_REDIRECT_URI
-});
-
-function refreshSpotifyToken() {
-    spotifyApi.clientCredentialsGrant().then(
-        function (data) {
-            console.log("Spotify access token: " + data.body['access_token']);
-            console.log('The access token expires in ' + data.body['expires_in']);
-            // Save the access token so that it's used in future calls
-            spotifyApi.setAccessToken(data.body['access_token']);
-        },
-        function (err) {
-            console.log("Failed to obtain Spotify token: " + err)
-        }
-    );
-}
-refreshSpotifyToken();
-tokenRefreshInterval = setInterval(refreshSpotifyToken, 1000 * 60 * 60);
 
 router.post('/game_AttemptLogin_unicodepub64.php', function (req, res, next) {
     const statusString = require('crypto').createHash('md5').update("ntlr78ouqkutfc" + req.body.loginorig + "47ourol9oux").digest("hex");
@@ -75,49 +53,7 @@ router.post('/game_fetchsongid_unicodePB.php', function (req, res, next) {
     console.log("Looking up PB of user ID " + req.body.uid + " on " + req.body.artist + " - " + req.body.song);
 
     (async function () {
-        var song = await database.Song.findOne({
-            where: {
-                [Op.or]: [
-                    {
-                        [Op.and]: [
-                            { artist: req.body.artist },
-                            { title: req.body.song }
-                        ]
-                    },
-                    {
-                        [Op.and]: [
-                            { spotifyartists: req.body.artist },
-                            { spotifytitle: req.body.song }
-                        ]
-                    }
-                ]
-            }
-        });
-
-        var apiResult;
-        if (song == null) {
-            apiResult = await spotifyApi.searchTracks(req.body.artist + " " + req.body.song, { limit: 1, locale: 'en_US' });
-            console.log('Search for ' + req.body.artist + req.body.song + ' returned ' + apiResult.body.tracks.total + ' tracks');
-        }
-
-        if (song == null) {
-            if (apiResult.body.tracks.items[0]) {
-                song = await database.Song.create({
-                    title: req.body.song,
-                    artist: req.body.artist,
-                    spotifyid: apiResult.body.tracks.items[0].id,
-                    spotifytitle: apiResult.body.tracks.items[0].name,
-                    spotifyartists: apiResult.body.tracks.items[0].artists.map(artist => artist.name).join(", "),
-                    coverurl: apiResult.body.tracks.items[0].album.images[0].url
-                });
-            }
-            else {
-                song = await database.Song.create({
-                    title: req.body.song,
-                    artist: req.body.artist
-                });
-            }
-        }
+        var song = database.getOrCreateSong(req.body.artist, req.body.song);     
 
         var pb = await database.Score.findOne({
             where: {
@@ -174,14 +110,7 @@ router.post('/game_sendride25.php', function (req, res, next) {
             }
         });
 
-        var song = await database.Song.findOne({
-            where: {
-                [Op.and]: [
-                    { artist: req.body.artist },
-                    { title: req.body.song }
-                ]
-            }
-        });
+        var song = database.getOrCreateSong(req.body.artist, req.body.song);
 
         var sendRideResponse;
         if (user != null && song != null) {
