@@ -115,9 +115,6 @@ const Score = sequelize.define('Score', {
     autoIncrement: true,
     primaryKey: true
   },
-  songid: {
-    type: DataTypes.INTEGER
-  },
   userid: {
     type: DataTypes.INTEGER
   },
@@ -165,12 +162,16 @@ exports.Score = Score;
 Song.hasMany(Score, {
   foreignKey: 'songid'
 });
-Score.belongsTo(Song);
+Score.belongsTo(Song, {
+  foreignKey: 'songid'
+});
 
 User.hasMany(Score, {
   foreignKey: 'userid'
 });
-Score.belongsTo(User);
+Score.belongsTo(User, {
+  foreignKey: 'userid'
+});
 
 (async function () {
   await User.sync();
@@ -184,8 +185,9 @@ Score.belongsTo(User);
  * @param {string} title Title string
  * @returns {Song} The found or newly created Song instance.
  */
-function getOrCreateSong(artist, title) {
-  var song = await Song.findOne({
+module.exports.getOrCreateSong = function (artist, title) {
+  var song;
+  Song.findOne({
     where: {
       [Op.or]: [
         {
@@ -202,6 +204,8 @@ function getOrCreateSong(artist, title) {
         }
       ]
     }
+  }).then(function (result) {
+    song = result;
   });
 
   var apiResult;
@@ -210,51 +214,67 @@ function getOrCreateSong(artist, title) {
   searchString = searchString.Replace("ft.", string.Empty);
   searchString = searchString.Replace("featuring", string.Empty);
   if (song == null) {
-    apiResult = await spotifyApi.searchTracks(searchString, { limit: 1, locale: 'en_US' });
+    spotifyApi.searchTracks(searchString, { limit: 1, locale: 'en_US' }).then(function (result) {
+      apiResult = result;
+    });
     console.log('Search for ' + searchString + ' returned ' + apiResult.body.tracks.total + ' tracks');
   }
 
   if (song == null) {
     if (apiResult.body.tracks.items[0]) {
-      song = await Song.create({
+      Song.create({
         title: title,
         artist: artist,
         spotifyid: apiResult.body.tracks.items[0].id,
         spotifytitle: apiResult.body.tracks.items[0].name,
         spotifyartists: apiResult.body.tracks.items[0].artists.map(artist => artist.name).join(", "),
         coverurl: apiResult.body.tracks.items[0].album.images[0].url
+      }).then(function (result) {
+        song = result;
       });
     }
     else {
-      song = await Song.create({
+      Song.create({
         title: title,
         artist: artist
+      }).then(function (result) {
+        song = result;
       });
     }
   }
   return song;
 }
-exports.getOrCreateSong = getOrCreateSong;
 
 /**
  * Attempts finding a user by their SteamID64
  * @param {any} steamID The user's SteamID64
- * @param {boolean} create Create profile if it doesn't exist?
- * @returns {User} The user result.
+ * @param {boolean} create Create profile if it doesn't exist
+ * @returns {User} The user result
  */
-function findUserSteam(steamID, create) {
+module.exports.findUserSteam = function (steamID, create) {
   console.log("OpenID Identifier: " + steamID);
-  var user = await User.findOne({
-    where: {
-      steamid64: parseInt(steamID)
-    }
-  });
-
-  if (!user && create) {
-    var user = await User.create({
-      steamid64: parseInt(steamID)
+  if (create) {
+    return User.findOrCreate({
+      where: {
+        steamid64: steamID
+      },
+      defaults: {
+        steamid64: steamID,
+        steamid32: BigInt(steamID) - 76561197960265728n
+      }
+    }).then(function (result) {
+      console.log("User created: " + result[0])
+      return result[0];
     });
   }
-  return user;
+  else {
+    return User.findOne({
+      where: {
+        steamid64: steamID
+      }
+    }).then(function (result) {
+      console.log("User found: " + result)
+      return result;
+    });
+  }
 }
-exports.findUserSteam = findUserSteam;

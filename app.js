@@ -18,7 +18,7 @@ const util = require('util')
 var passport = require('passport');
 var SteamStrategy = require('passport-steam').Strategy;
 var session = require('express-session');
-const { database } = require('./database');
+const database = require('./database');
 
 var app = express();
 
@@ -45,7 +45,12 @@ passport.use(new SteamStrategy({
   apiKey: process.env.STEAM_API_KEY
 },
   function (identifier, profile, done) {
-    database.findUserSteam(identifier)
+    console.log(profile);
+    wavebreakerProfile = database.findUserSteam(profile.id, true);
+    wavebreakerProfile.identifier = identifier;
+    wavebreakerProfile.avatarFull = profile._json.avatarfull;
+    wavebreakerProfile.steamName = profile.displayName;
+    return done(null, wavebreakerProfile);
   }
 ));
 
@@ -79,9 +84,6 @@ app.use(expressSvelte({
 }));
 app.use('/public', express.static(__dirname + '/public'));
 
-//Frontend
-app.use('/', frontendRouter);
-
 //These are the endpoints the game will access
 app.use('/as', as1apiRouter);
 //The game tries accessing an endpoint under //as instead of /as in one single instance
@@ -91,14 +93,32 @@ app.use('//as', as1apiRouter);
 //Site API
 app.use('/api', authRouter);
 
+app.get("/account-init", (req, res) => {
+	if (req.isAuthenticated() && !req.user.username){
+		res.svelte('account-init', {
+			globalStores: {
+				user: req.user,
+			}
+		});
+	}
+	else {
+		res.redirect("/");
+	}
+});
+
 //Redirect people with uninitialized accounts to account initialization
-app.use(function (req, res, next) {
-  if (req.baseUrl != "/account-init" && req.isAuthenticated() && !req.user.username) {
+app.get('/*', function (req, res, next) {
+  console.log(req.baseUrl + " is baseUrl");
+  if (req.isAuthenticated() && !req.user.username) {
+    console.log("Redirecting to account init");
     res.redirect('/account-init');
   } else {
     next();
   }
 });
+
+//Frontend
+app.use('/', frontendRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

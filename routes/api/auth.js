@@ -14,12 +14,12 @@ router.get('/auth/steam', passport.authenticate('steam', {
     });
 
 router.get('/auth/steam/return', passport.authenticate('steam', {
-    failureRedirect: '/login'
+    failureRedirect: '/loginfail'
 }),
     function (req, res) {
         // Successful authentication, redirect home.
         console.log("Login success!");
-        res.redirect('/first-time/');
+        res.redirect('/account-init');
     });
 
 router.get('/auth/logout', function (req, res) {
