@@ -50,7 +50,7 @@ const User = sequelize.define('User', {
     type: DataTypes.INTEGER
   },
   gamepassword: {
-    type: DataTypes.STRING
+    type: DataTypes.TEXT
   }
 }, {
   // Don't expose game password hash by default
@@ -249,9 +249,10 @@ module.exports.getOrCreateSong = function (artist, title) {
  * Attempts finding a user by their SteamID64
  * @param {any} steamID The user's SteamID64
  * @param {boolean} create Create profile if it doesn't exist
+ * @param {boolean} raw Should the resulting object be raw JSON?
  * @returns {User} The user result
  */
-module.exports.findUserSteam = function (steamID, create) {
+module.exports.findUserSteam = function (steamID, create, raw) {
   console.log("OpenID Identifier: " + steamID);
   if (create) {
     return User.findOrCreate({
@@ -261,20 +262,40 @@ module.exports.findUserSteam = function (steamID, create) {
       defaults: {
         steamid64: steamID,
         steamid32: BigInt(steamID) - 76561197960265728n
-      }
-    }).then(function (result) {
-      console.log("User created: " + result[0])
-      return result[0];
+      },
+      raw: raw
+    }).then(function (user) {
+      console.log("User created: " + user[0].get({ plain: true }));
+      return user[0].get({ plain: true });
     });
   }
   else {
     return User.findOne({
       where: {
         steamid64: steamID
-      }
-    }).then(function (result) {
-      console.log("User found: " + result)
-      return result;
+      },
+      raw: raw
+    }).then(function (user) {
+      console.log("User found: " + user.get({ plain: true }));
+      return user.get({ plain: true });
     });
   }
+}
+
+/**
+ * Attempts finding a user by their username
+ * @param {string} username Username to search
+ * @param {boolean} raw Should the resulting object be raw JSON?
+ * @returns {User} The user result
+ */
+module.exports.findUserByUsername = function (username, raw) {
+  return User.findOne({
+    where: {
+      username: username
+    },
+    plain: true,
+    raw: raw
+  }).then(function (user) {
+    return user;
+  });
 }

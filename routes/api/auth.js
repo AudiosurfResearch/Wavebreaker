@@ -5,7 +5,7 @@ let dotenv = require('dotenv').config();
 var router = express.Router();
 var passport = require('passport');
 
-router.get('/auth/steam', passport.authenticate('steam', {
+router.get('/steam', passport.authenticate('steam', {
     failureRedirect: '/autherror'
 }),
     function (req, res) {
@@ -13,7 +13,7 @@ router.get('/auth/steam', passport.authenticate('steam', {
         // this function will not be called.
     });
 
-router.get('/auth/steam/return', passport.authenticate('steam', {
+router.get('/steam/return', passport.authenticate('steam', {
     failureRedirect: '/loginfail'
 }),
     function (req, res) {
@@ -22,7 +22,7 @@ router.get('/auth/steam/return', passport.authenticate('steam', {
         res.redirect('/account-init');
     });
 
-router.get('/auth/logout', function (req, res) {
+router.get('/logout', function (req, res) {
     req.logout();
     res.redirect('/');
 });
