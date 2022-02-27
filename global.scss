@@ -8,6 +8,12 @@ body {
     margin-top: 0.5rem !important;
 }
 
+.icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 $primary: #2196f3;
 $link: #2196f3;
 
@@ -23,4 +29,7 @@ $link: #2196f3;
 @import "bulma/sass/components/media.sass";
 @import "bulma/sass/components/navbar.sass";
 @import "bulma/sass/components/tabs.sass";
+@import "bulma/sass/grid/columns.sass";
+@import "bulma/sass/form/_all.sass";
 @import "bulma/sass/layout/section.sass";
+@import "bulma/sass/layout/hero.sass";

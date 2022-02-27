@@ -32,10 +32,14 @@
     "serve-static": "^1.14.2",
     "spotify-web-api-node": "^5.0.2",
     "sqlite3": "^4.2.0",
+    "steamapi": "^2.2.0",
+    "svelte-forms": "^2.2.1",
     "svelte-preprocess": "^4.10.3",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^4.1.3",
+    "cssnano": "^5.0.17",
     "del-cli": "^4.0.1",
     "postcss": "^8.4.6",
     "svelte-language-server": "^0.14.21"

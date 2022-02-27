@@ -5,19 +5,27 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var as1apiRouter = require('./routes/as1_api');
 var authRouter = require('./routes/api/auth');
+var usersRouter = require('./routes/api/users');
 var frontendRouter = require('./routes/frontend/main')
 const { json } = require('body-parser');
 var bodyParser = require('body-parser');
 let dotenv = require('dotenv').config();
+
+const SteamAPI = require('steamapi');
+const steam = new SteamAPI(process.env.STEAM_API_KEY);
+
 const expressSvelte = require('express-svelte');
 const sveltePreprocess = require('svelte-preprocess');
 const postcss = require('postcss');
 const autoprefixer = require('autoprefixer')
+const purgecss = require('@fullhuman/postcss-purgecss')
+
 const util = require('util')
 
 var passport = require('passport');
 var SteamStrategy = require('passport-steam').Strategy;
 var session = require('express-session');
+const database = require('./database');
 
 var app = express();
 
@@ -30,11 +38,19 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(logger('dev'));
 
 passport.serializeUser(function (user, done) {
-  done(null, user);
+  done(null, user.id);
 });
 
-passport.deserializeUser(function (obj, done) {
-  done(null, obj);
+passport.deserializeUser(function (id, done) {
+  database.User.findByPk(id).then((user) => {
+    user = user.get({ plain: true });
+    steam.getUserSummary(user.steamid64).then(summary => {
+      user.identifier = "https://steamcommunity.com/openid/id/" + user.steamid64;
+      user.avatarFull = summary.avatar.large;
+      user.steamName = summary.nickname;
+      done(null, user);
+    });
+  })
 });
 
 passport.use(new SteamStrategy({
@@ -43,10 +59,12 @@ passport.use(new SteamStrategy({
   apiKey: process.env.STEAM_API_KEY
 },
   function (identifier, profile, done) {
-    process.nextTick(function () {
-      profile.identifier = identifier;
-      return done(null, profile);
-    });
+    database.findUserSteam(profile.id, true, false).then(wavebreakerProfile => {
+      wavebreakerProfile.identifier = identifier;
+      wavebreakerProfile.avatarFull = profile._json.avatarfull;
+      wavebreakerProfile.steamName = profile.displayName;
+      return done(null, wavebreakerProfile);
+    })
   }
 ));
 
@@ -72,16 +90,19 @@ app.use(expressSvelte({
   preprocess: [sveltePreprocess({
     postcss: {
       plugins: [
-        autoprefixer
+        autoprefixer,
+        //purgecss({
+        //  content: ['./**/*.html']
+        //})
+        require('cssnano')({
+          preset: 'default',
+        }),
       ]
     }
   })],
   templateFilename: "wavebreaker_template.html"
 }));
 app.use('/public', express.static(__dirname + '/public'));
-
-//Frontend
-app.use('/', frontendRouter);
 
 //These are the endpoints the game will access
 app.use('/as', as1apiRouter);
@@ -90,7 +111,35 @@ app.use('/as', as1apiRouter);
 app.use('//as', as1apiRouter);
 
 //Site API
-app.use('/api', authRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
+
+app.get("/account-init", (req, res) => {
+  if (req.isAuthenticated() && !req.user.username) {
+    res.svelte('account-init', {
+      globalStores: {
+        user: req.user,
+      }
+    });
+  }
+  else {
+    res.redirect("/");
+  }
+});
+
+//Redirect people with uninitialized accounts to account initialization
+app.get('/*', function (req, res, next) {
+  console.log(req.baseUrl + " is baseUrl");
+  if (req.isAuthenticated() && !req.user.username) {
+    console.log("Redirecting to account init");
+    res.redirect('/account-init');
+  } else {
+    next();
+  }
+});
+
+//Frontend
+app.use('/', frontendRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
