@@ -18,4 +18,22 @@ router.post('/getUserByUsername', function (req, res) {
     })
 });
 
+router.post('/initializeAccount', function (req, res) {
+    if (req.isAuthenticated()) {
+        database.initializeAccount(req.user.id, req.body.username, req.body.password, req.body.locationid).then(result => {
+            if (result.success) {
+                console.log("Account " + req.body.username + " with ID " + req.user.id + " initialized");
+                res.json(result);
+            }
+            else {
+                console.log("Failed initializing " + req.body.username);
+                res.json(result);
+            }
+        })
+    }
+    else {
+        res.sendStatus(401);
+    }
+});
+
 module.exports = router;

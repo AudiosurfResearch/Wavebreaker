@@ -12,7 +12,7 @@ router.post('/game_AttemptLogin_unicodepub64.php', function (req, res, next) {
     (async function () {
         console.log("Attempting login for user " + req.body.email);
 
-        var user = await database.User.unscoped().findOne({
+        var user = await database.User.scope('initialized').findOne({
             where: {
                 [Op.and]: [
                     { username: req.body.email },
@@ -101,7 +101,7 @@ router.post('/game_sendride25.php', function (req, res, next) {
     console.log("Received ride on song " + req.body.artist + " - " + req.body.song + " with score of " + req.body.score);
 
     (async function () {
-        var user = await database.User.unscoped().findOne({
+        var user = await database.User.scope('initialized').findOne({
             where: {
                 [Op.and]: [
                     { username: req.body.email },

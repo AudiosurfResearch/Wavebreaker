@@ -33,6 +33,31 @@
     ]);
     const locationID = field("locationID", "0", [min(1)]);
     const initForm = form(username, password, passwordConfirmation, locationID);
+
+    async function initializeAccount() {
+        const user = await fetch("/api/users/initializeAccount", {
+            credentials: "include",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                username: $username.value,
+                password: $password.value,
+                locationid: $locationID.value,
+            }),
+        })
+            .then((r) => r.json())
+            .then(function (response) {
+                if (response.success) {
+                    alert("Account created successfully! You can now log in from Audiosurf.")
+                    window.location.href = "/";
+                }
+                else {
+                    alert(response.message);
+                }
+            });
+    }
 </script>
 
 <Navbar />
@@ -144,6 +169,7 @@
                     <button
                         class="button is-primary"
                         disabled={!$initForm.valid}
+                        on:click={initializeAccount}
                     >
                         Initialize account
                     </button>

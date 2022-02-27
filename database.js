@@ -1,8 +1,9 @@
-const { Sequelize, DataTypes, Model } = require('sequelize');
+const { Sequelize, DataTypes, Model, Op } = require('sequelize');
 const _ = require('lodash');
 let dotenv = require('dotenv').config();
 
 var SpotifyWebApi = require('spotify-web-api-node');
+const { result } = require('lodash');
 var spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -41,7 +42,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING
   },
   steamid64: {
-    type: DataTypes.INTEGER
+    type: DataTypes.STRING
   },
   steamid32: {
     type: DataTypes.INTEGER
@@ -51,12 +52,32 @@ const User = sequelize.define('User', {
   },
   gamepassword: {
     type: DataTypes.TEXT
+  },
+  //1 = Regular user
+  //2 = Moderator
+  //3 = Wavebreaker Team
+  accounttype: {
+    type: DataTypes.INTEGER
   }
 }, {
   // Don't expose game password hash by default
   defaultScope: {
     attributes: {
       exclude: 'gamepassword'
+    }
+  },
+  scopes: {
+    initialized: {
+      where: {
+        username: {
+          [Op.ne]: null
+        }
+      }
+    },
+    nopassword: {
+      attributes: {
+        exclude: 'gamepassword'
+      }
     }
   }
 });
@@ -295,7 +316,85 @@ module.exports.findUserByUsername = function (username, raw) {
     },
     plain: true,
     raw: raw
-  }).then(function (user) {
-    return user;
   });
+}
+
+/**
+ * Attempts finding a user by their Wavebreaker ID
+ * @param {number} id User ID to look up
+ * @param {boolean} raw Should the resulting object be raw JSON?
+ * @returns {User} The user result
+ */
+module.exports.findUserById = function (id, raw) {
+  return User.findByPk(id, {
+    where: {
+      username: username
+    },
+    raw: raw
+  });
+}
+
+/**
+ * @typedef {Object} InitializationResult
+ * @property {boolean} success
+ * @property {string} message Contains the error message if initialization failed, empty otherwise
+ */
+/**
+ * Initializes an account
+ * @param {number} id ID of user to initialize
+ * @param {string} username Username to set
+ * @returns {Promise<InitializationResult>} The result of the initialization
+ */
+module.exports.initializeAccount = function (id, username, password, location) {
+  return (async function () {
+    if (!id || !username || !password || !location || location < 1 || location > 272) {
+      return {
+        success: false,
+        message: "One or more of the arguments were invalid"
+      };
+    }
+
+    if (username.length > 20) {
+      return {
+        success: false,
+        message: "Username is too long"
+      };
+    }
+
+    if (password.length < 8) {
+      return {
+        success: false,
+        message: "Password is too short"
+      };
+    }
+
+    try {
+      var user = await User.findOne({
+        where: {
+          username: username
+        },
+      });
+      if (user) throw new Error("User " + username + " already exists");
+
+      user = await User.unscoped().findByPk(id);
+      if (!user) throw new Error("User with ID " + id + " doesn't exist");
+
+      await user.update({
+        username: username,
+        gamepassword: require('crypto').createHash('md5').update(password).digest("hex"),
+        locationid: location,
+        accounttype: 1
+      });
+
+      return {
+        success: true,
+        message: ""
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  })();
 }

@@ -11,6 +11,9 @@ const { json } = require('body-parser');
 var bodyParser = require('body-parser');
 let dotenv = require('dotenv').config();
 
+const SteamAPI = require('steamapi');
+const steam = new SteamAPI(process.env.STEAM_API_KEY);
+
 const expressSvelte = require('express-svelte');
 const sveltePreprocess = require('svelte-preprocess');
 const postcss = require('postcss');
@@ -35,12 +38,19 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(logger('dev'));
 
 passport.serializeUser(function (user, done) {
-
-  done(null, user);
+  done(null, user.id);
 });
 
-passport.deserializeUser(function (obj, done) {
-  done(null, obj);
+passport.deserializeUser(function (id, done) {
+  database.User.findByPk(id).then((user) => {
+    user = user.get({ plain: true });
+    steam.getUserSummary(user.steamid64).then(summary => {
+      user.identifier = "https://steamcommunity.com/openid/id/" + user.steamid64;
+      user.avatarFull = summary.avatar.large;
+      user.steamName = summary.nickname;
+      done(null, user);
+    });
+  })
 });
 
 passport.use(new SteamStrategy({
@@ -49,7 +59,6 @@ passport.use(new SteamStrategy({
   apiKey: process.env.STEAM_API_KEY
 },
   function (identifier, profile, done) {
-    console.log(profile);
     database.findUserSteam(profile.id, true, false).then(wavebreakerProfile => {
       wavebreakerProfile.identifier = identifier;
       wavebreakerProfile.avatarFull = profile._json.avatarfull;
