@@ -1,0 +1,11 @@
+.idea/
+.DS_Store/
+node_modules/
+.tmp/
+public/dist/
+!public/dist/.gitkeep
+.env
+cert.pem
+key.pem
+*.sqlite
+wavebreaker_config.json
