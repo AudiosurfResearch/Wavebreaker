@@ -25,11 +25,14 @@
   "homepage": "https://github.com/AudiosurfResearch/Wavebreaker#readme",
   "devDependencies": {
     "@types/node": "^18.6.1",
+    "@types/xml2js": "^0.4.11",
     "prisma": "^4.1.0",
     "tslint": "^6.1.3",
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "fastify": "^4.3.0"
+    "@fastify/formbody": "^7.0.1",
+    "fastify": "^4.3.0",
+    "xml2js": "^0.4.23"
   }
 }
