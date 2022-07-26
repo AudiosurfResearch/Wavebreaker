@@ -22,9 +22,10 @@ model User {
 }
 
 model Song {
-  id     Int    @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   title  String
   artist String
+  scores Score[]
 }
 
 model Score {
@@ -43,4 +44,6 @@ model Score {
   goldThreshold Int
   iss           Int
   isj           Int
+  song          Song     @relation(fields: [songId], references: [id])
+  songId        Int
 }
