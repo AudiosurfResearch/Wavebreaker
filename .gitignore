@@ -11,3 +11,4 @@ key.pem
 wavebreaker_config.json
 *.js
 *.d.ts
+*.db

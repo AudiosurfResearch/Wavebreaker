@@ -1,5 +1,5 @@
 {
-  "name": "wavebreaker2",
+  "name": "wavebreaker",
   "version": "1.0.0",
   "description": "Audiosurf custom server written in TypeScript.",
   "main": "index.js",
