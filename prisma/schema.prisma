@@ -11,7 +11,36 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  username  String @unique
+  id           Int     @id @default(autoincrement())
+  username     String  @unique
+  steamid64    Int     @unique
+  steamid32    Int     @unique
+  locationid   Int
+  gamePassword String
+  accountType  Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
+  scores       Score[]
+}
+
+model Song {
+  id     Int    @id @default(autoincrement())
+  title  String
+  artist String
+}
+
+model Score {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  player        User     @relation(fields: [userId], references: [id])
+  leagueId      Int
+  trackShape    String
+  xstats        String
+  density       Int
+  vehicleId     Int
+  score         Int
+  rideTime      DateTime @default(now()) //NOTE: When sending to the game, get it as UNIX time, divide by 1000 and Math.floor it
+  feats         String
+  songLength    Int
+  goldThreshold Int
+  iss           Int
+  isj           Int
 }
