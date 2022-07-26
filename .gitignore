@@ -12,3 +12,4 @@ wavebreaker_config.json
 *.js
 *.d.ts
 *.db
+prisma/migrations/

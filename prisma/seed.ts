@@ -1,0 +1,26 @@
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
+async function main() {
+  const john = await prisma.user.upsert({
+    where: { username: "John Audiosurf" },
+    update: {},
+    create: {
+      username: "John Audiosurf",
+      steamid64: 696969,
+      steamid32: 696969,
+      locationid: 123,
+      gamePassword: "36c5e55204d2430aafe10aa4373bfb98", //plaintext: sussybaka
+    },
+  });
+  console.log(john);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
