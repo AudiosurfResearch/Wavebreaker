@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import formbody from "@fastify/formbody";
 import WavebreakerConfig from "./wavebreaker_config.json";
 import accountsRouter from "./routes/as1/accounts";
+import gameplayRouter from "./routes/as1/gameplay";
 import path from "path";
 import fs from "fs";
 
@@ -24,3 +25,4 @@ fastify.listen({ port: WavebreakerConfig.port }, (err, address) => {
 fastify.register(formbody); //So we can parse requests that use application/x-www-form-urlencoded
 
 fastify.register(accountsRouter);
+fastify.register(gameplayRouter);

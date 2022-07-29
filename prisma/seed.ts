@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma, User } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const john = await prisma.user.upsert({
+  const john: User = await prisma.user.upsert({
     where: { username: "John Audiosurf" },
     update: {},
     create: {
