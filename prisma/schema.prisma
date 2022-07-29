@@ -15,8 +15,8 @@ model User {
   username     String  @unique
   steamid64    Int     @unique
   steamid32    Int     @unique
-  locationid   Int
-  gamePassword String
+  locationid   Int?
+  gamePassword String?
   accountType  Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
   scores       Score[]
 }
