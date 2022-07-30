@@ -3,11 +3,11 @@ import formbody from "@fastify/formbody";
 import WavebreakerConfig from "./wavebreaker_config.json";
 import accountsRouter from "./routes/as1/accounts";
 import gameplayRouter from "./routes/as1/gameplay";
-import path from "path";
+import informationRouter from "./routes/as1/information";
 import fs from "fs";
 
 const fastify = Fastify({
-  logger: true,
+  logger: WavebreakerConfig.logger,
   https: {
     key: fs.readFileSync(WavebreakerConfig.https.key),
     cert: fs.readFileSync(WavebreakerConfig.https.cert),
@@ -26,3 +26,4 @@ fastify.register(formbody); //So we can parse requests that use application/x-ww
 
 fastify.register(accountsRouter);
 fastify.register(gameplayRouter);
+fastify.register(informationRouter);
