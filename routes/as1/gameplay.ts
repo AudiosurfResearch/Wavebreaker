@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient, User, Score, Song } from "@prisma/client";
+import { Prisma, PrismaClient, User, Score, Song } from "@prisma/client";
 import xml2js from "xml2js";
 
 const xmlBuilder = new xml2js.Builder();
@@ -51,6 +51,10 @@ interface FetchScoresRequest {
   league: number;
   locationid: number;
 }
+
+type ScoreWithPlayer = Prisma.ScoreGetPayload<{
+  include: { player: true };
+}>;
 
 export default async function routes(
   fastify: FastifyInstance,
@@ -199,7 +203,7 @@ export default async function routes(
   fastify.post<{
     Body: FetchScoresRequest;
   }>("/as/game_fetchscores6_unicode.php", async (request, reply) => {
-    const casualScores = await prisma.score.findMany({
+    const casualScores: ScoreWithPlayer[] = await prisma.score.findMany({
       where: {
         songId: +request.body.songid,
         leagueId: 0,
@@ -208,8 +212,11 @@ export default async function routes(
         score: "desc",
       },
       take: 11,
+      include: {
+        player: true,
+      },
     });
-    const proScores = await prisma.score.findMany({
+    const proScores: ScoreWithPlayer[] = await prisma.score.findMany({
       where: {
         songId: +request.body.songid,
         leagueId: 1,
@@ -218,8 +225,11 @@ export default async function routes(
         score: "desc",
       },
       take: 11,
+      include: {
+        player: true,
+      },
     });
-    const eliteScores = await prisma.score.findMany({
+    const eliteScores: ScoreWithPlayer[] = await prisma.score.findMany({
       where: {
         songId: +request.body.songid,
         leagueId: 2,
@@ -228,20 +238,13 @@ export default async function routes(
         score: "desc",
       },
       take: 11,
+      include: {
+        player: true,
+      },
     });
 
     let fullScoreArray: Object[] = [];
     for (const score of casualScores) {
-      try {
-        var user = await prisma.user.findUniqueOrThrow({
-          where: {
-            id: score.userId,
-          },
-        });
-      } catch (e) {
-        return "failed";
-      }
-
       fullScoreArray.push({
         $: {
           scoretype: 0,
@@ -251,7 +254,7 @@ export default async function routes(
             leagueid: 0,
           },
           ride: {
-            username: user.username,
+            username: score.player.username,
             vehicleid: score.vehicleId,
             score: score.score,
             ridetime: Math.floor(score.rideTime.getTime() / 1000),
@@ -264,16 +267,6 @@ export default async function routes(
     }
 
     for (const score of proScores) {
-      try {
-        var user = await prisma.user.findUniqueOrThrow({
-          where: {
-            id: score.userId,
-          },
-        });
-      } catch (e) {
-        return "failed";
-      }
-
       fullScoreArray.push({
         $: {
           scoretype: 0,
@@ -283,7 +276,7 @@ export default async function routes(
             leagueid: 1,
           },
           ride: {
-            username: user.username,
+            username: score.player.username,
             vehicleid: score.vehicleId,
             score: score.score,
             ridetime: Math.floor(score.rideTime.getTime() / 1000),
@@ -296,16 +289,6 @@ export default async function routes(
     }
 
     for (const score of eliteScores) {
-      try {
-        var user = await prisma.user.findUniqueOrThrow({
-          where: {
-            id: score.userId,
-          },
-        });
-      } catch (e) {
-        return "failed";
-      }
-
       fullScoreArray.push({
         $: {
           scoretype: 0,
@@ -315,7 +298,7 @@ export default async function routes(
             leagueid: 2,
           },
           ride: {
-            username: user.username,
+            username: score.player.username,
             vehicleid: score.vehicleId,
             score: score.score,
             ridetime: Math.floor(score.rideTime.getTime() / 1000),
