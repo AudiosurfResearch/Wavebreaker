@@ -19,6 +19,7 @@ model User {
   gamePassword String?
   accountType  Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
   scores       Score[]
+  shouts       Shout[]
 }
 
 model Song {
@@ -26,6 +27,7 @@ model Song {
   title  String
   artist String
   scores Score[]
+  shouts Shout[]
 }
 
 model Score {
@@ -46,4 +48,14 @@ model Score {
   isj           Int
   song          Song     @relation(fields: [songId], references: [id])
   songId        Int
+}
+
+model Shout {
+  id          Int      @id @default(autoincrement())
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  songId      Int
+  song        Song     @relation(fields: [songId], references: [id])
+  content     String
+  timeCreated DateTime @default(now())
 }
