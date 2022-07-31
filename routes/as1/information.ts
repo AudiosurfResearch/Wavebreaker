@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient, Score } from "@prisma/client";
+import { Prisma, PrismaClient, Score, Shout } from "@prisma/client";
 import xml2js from "xml2js";
 
 const xmlBuilder = new xml2js.Builder();
@@ -10,6 +10,14 @@ interface FetchTrackShapeRequest {
   songid: number;
   league: number;
 }
+
+interface FetchShoutsRequest {
+  songid: number;
+}
+
+type ShoutWithAuthor = Prisma.ShoutGetPayload<{
+  include: { author: true };
+}>;
 
 export default async function routes(
   fastify: FastifyInstance,
@@ -23,5 +31,30 @@ export default async function routes(
         id: request.body.ridd,
       },
     });
+  });
+
+  fastify.post<{
+    Body: FetchShoutsRequest;
+  }>("/as/game_fetchshouts_unicode.php", async (request, reply) => {
+    let shoutResponse: string = "No shouts found.";
+    const shouts: ShoutWithAuthor[] = await prisma.shout.findMany({
+      where: {
+        songId: +request.body.songid,
+      },
+      include: {
+        author: true,
+      },
+    });
+
+    shouts.forEach((shout) => {
+      shoutResponse +=
+        shout.author.username +
+        " (at " +
+        shout.timeCreated.toUTCString() +
+        "):\n";
+      shoutResponse += shout.content + "\n\n";
+    });
+
+    return shoutResponse;
   });
 }
