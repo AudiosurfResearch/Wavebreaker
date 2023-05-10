@@ -1,32 +1,21 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, PrismaClient, User, Score, Song } from "@prisma/client";
 import xml2js from "xml2js";
+import { SteamUtils } from "../../util/steam";
 
 const xmlBuilder = new xml2js.Builder();
 const prisma = new PrismaClient();
 
-interface NowPlayingRequest {
-  email: string;
-  pass: string;
-  artist: string;
-  song: number;
-  vehicle: number;
-  songlength: number;
-  trackshape: string;
-  songid: number;
-  uid: number;
-}
-
-interface FetchPBRequest {
+interface FetchSongIdSteamRequest {
   artist: string;
   song: string;
   uid: number;
   league: number;
 }
 
-interface SendRideRequest {
-  email: string;
-  pass: string;
+interface SendRideSteamRequest {
+  steamusername: string;
+  snum: number;
   artist: string;
   song: string;
   score: number;
@@ -43,13 +32,19 @@ interface SendRideRequest {
   goldthreshold: number;
   iss: number;
   isj: number;
+  s64: number;
+  ticket: string;
 }
 
-interface FetchScoresRequest {
+interface GetRidesSteamRequest {
   uid: number;
   songid: number;
   league: number;
   locationid: number;
+  steamusername: string;
+  snum: number;
+  s64: number;
+  ticket: string;
 }
 
 type ScoreWithPlayer = Prisma.ScoreGetPayload<{
@@ -61,18 +56,17 @@ export default async function routes(
   options: Object
 ) {
   fastify.post<{
-    Body: NowPlayingRequest;
-  }>("/as/game_nowplaying_unicode_testing.php", async (request, reply) => {
-    /* 
-      TODO: implement setting what players are currently playing this track
-      and maybe find out what the rest of the info in the request is used for
-    */
-    return "done";
-  });
+    Body: FetchSongIdSteamRequest;
+  }>("/as_steamlogin/game_fetchsongid_unicode.php", async (request, reply) => {
+    //Validation
+    if (
+      request.body.artist.toLowerCase() == "unknown" &&
+      request.body.song.toLowerCase() == "unknown"
+    )
+      return "failed";
 
-  fastify.post<{
-    Body: FetchPBRequest;
-  }>("/as/game_fetchsongid_unicodePB.php", async (request, reply) => {
+    //TODO: Case insensitivity??? This is an issue depending on DB backend, tbh.
+    //SQLite doesn't have viable case insensitive matching options
     try {
       var song: Song = await prisma.song.findFirstOrThrow({
         where: {
@@ -121,199 +115,201 @@ export default async function routes(
   });
 
   fastify.post<{
-    Body: SendRideRequest;
-  }>("/as/game_sendride25.php", async (request, reply) => {
-    try {
-      var user: User = await prisma.user.findFirstOrThrow({
-        where: {
-          username: request.body.email,
-          gamePassword: request.body.pass,
-        },
-      });
-    } catch (e) {
-      return xmlBuilder.buildObject({
-        RESULT: {
-          $: {
-            status: "failed",
+    Body: SendRideSteamRequest;
+  }>(
+    "/as_steamlogin/game_SendRideSteamVerified.php",
+    async (request, reply) => {
+      try {
+        var user: User = await SteamUtils.findUserByTicket(request.body.ticket);
+      } catch (e) {
+        console.log(e);
+        return xmlBuilder.buildObject({
+          RESULT: {
+            $: {
+              status: "failed",
+            },
           },
-        },
-      });
-    }
+        });
+      }
 
-    /*
+      /*
       TODO: Implement checks for the song submission hash
     */
 
-    try {
-      var song: Song = await prisma.song.findFirstOrThrow({
-        where: {
-          title: request.body.song,
-          artist: request.body.artist,
+      try {
+        var song: Song = await prisma.song.findFirstOrThrow({
+          where: {
+            title: request.body.song,
+            artist: request.body.artist,
+          },
+        });
+      } catch (e) {
+        song = await prisma.song.create({
+          data: {
+            title: request.body.song,
+            artist: request.body.artist,
+          },
+        });
+      }
+
+      try {
+        let prevScore = await prisma.score.findFirstOrThrow({
+          where: {
+            userId: user.id,
+            songId: song.id,
+            leagueId: request.body.league,
+          },
+        });
+
+        await prisma.score.delete({ where: { id: prevScore.id } });
+      } catch (e) {}
+
+      await prisma.score.create({
+        data: {
+          userId: +user.id,
+          leagueId: +request.body.league,
+          trackShape: request.body.trackshape,
+          xstats: request.body.xstats,
+          density: +request.body.density,
+          vehicleId: +request.body.vehicle,
+          score: +request.body.score,
+          feats: request.body.feats,
+          songLength: +request.body.songlength,
+          goldThreshold: +request.body.goldthreshold,
+          iss: +request.body.iss,
+          isj: +request.body.isj,
+          songId: +request.body.songid,
         },
       });
-    } catch (e) {
-      song = await prisma.song.create({
-        data: {
-          title: request.body.song,
-          artist: request.body.artist,
+
+      return xmlBuilder.buildObject({
+        RESULT: {
+          $: {
+            status: "allgood",
+          },
+          songid: song.id,
         },
       });
     }
-
-    try {
-      let prevScore = await prisma.score.findFirstOrThrow({
-        where: {
-          userId: user.id,
-          songId: song.id,
-          leagueId: request.body.league,
-        },
-      });
-
-      await prisma.score.delete({ where: { id: prevScore.id } });
-    } catch (e) {}
-
-    await prisma.score.create({
-      data: {
-        userId: +user.id,
-        leagueId: +request.body.league,
-        trackShape: request.body.trackshape,
-        xstats: request.body.xstats,
-        density: +request.body.density,
-        vehicleId: +request.body.vehicle,
-        score: +request.body.score,
-        feats: request.body.feats,
-        songLength: +request.body.songlength,
-        goldThreshold: +request.body.goldthreshold,
-        iss: +request.body.iss,
-        isj: +request.body.isj,
-        songId: +request.body.songid,
-      },
-    });
-
-    return xmlBuilder.buildObject({
-      RESULT: {
-        $: {
-          status: "allgood",
-        },
-        songid: song.id,
-      },
-    });
-  });
+  );
 
   fastify.post<{
-    Body: FetchScoresRequest;
-  }>("/as/game_fetchscores6_unicode.php", async (request, reply) => {
-    const casualScores: ScoreWithPlayer[] = await prisma.score.findMany({
-      where: {
-        songId: +request.body.songid,
-        leagueId: 0,
-      },
-      orderBy: {
-        score: "desc",
-      },
-      take: 11,
-      include: {
-        player: true,
-      },
-    });
-    const proScores: ScoreWithPlayer[] = await prisma.score.findMany({
-      where: {
-        songId: +request.body.songid,
-        leagueId: 1,
-      },
-      orderBy: {
-        score: "desc",
-      },
-      take: 11,
-      include: {
-        player: true,
-      },
-    });
-    const eliteScores: ScoreWithPlayer[] = await prisma.score.findMany({
-      where: {
-        songId: +request.body.songid,
-        leagueId: 2,
-      },
-      orderBy: {
-        score: "desc",
-      },
-      take: 11,
-      include: {
-        player: true,
-      },
-    });
-
-    let fullScoreArray: Object[] = [];
-    for (const score of casualScores) {
-      fullScoreArray.push({
-        $: {
-          scoretype: 0,
+    Body: GetRidesSteamRequest;
+  }>(
+    "/as_steamlogin/game_GetRidesSteamVerified.php",
+    async (request, reply) => {
+      const casualScores: ScoreWithPlayer[] = await prisma.score.findMany({
+        where: {
+          songId: +request.body.songid,
+          leagueId: 0,
         },
-        league: {
+        orderBy: {
+          score: "desc",
+        },
+        take: 11,
+        include: {
+          player: true,
+        },
+      });
+      const proScores: ScoreWithPlayer[] = await prisma.score.findMany({
+        where: {
+          songId: +request.body.songid,
+          leagueId: 1,
+        },
+        orderBy: {
+          score: "desc",
+        },
+        take: 11,
+        include: {
+          player: true,
+        },
+      });
+      const eliteScores: ScoreWithPlayer[] = await prisma.score.findMany({
+        where: {
+          songId: +request.body.songid,
+          leagueId: 2,
+        },
+        orderBy: {
+          score: "desc",
+        },
+        take: 11,
+        include: {
+          player: true,
+        },
+      });
+
+      let fullScoreArray: Object[] = [];
+      for (const score of casualScores) {
+        fullScoreArray.push({
           $: {
-            leagueid: 0,
+            scoretype: 0,
           },
-          ride: {
-            username: score.player.username,
-            vehicleid: score.vehicleId,
-            score: score.score,
-            ridetime: Math.floor(score.rideTime.getTime() / 1000),
-            feats: score.feats,
-            songlength: score.songLength,
-            trafficcount: score.id,
+          league: {
+            $: {
+              leagueid: 0,
+            },
+            ride: {
+              username: score.player.username,
+              vehicleid: score.vehicleId,
+              score: score.score,
+              ridetime: Math.floor(score.rideTime.getTime() / 1000),
+              feats: score.feats,
+              songlength: score.songLength,
+              trafficcount: score.id,
+            },
           },
+        });
+      }
+
+      for (const score of proScores) {
+        fullScoreArray.push({
+          $: {
+            scoretype: 0,
+          },
+          league: {
+            $: {
+              leagueid: 1,
+            },
+            ride: {
+              username: score.player.username,
+              vehicleid: score.vehicleId,
+              score: score.score,
+              ridetime: Math.floor(score.rideTime.getTime() / 1000),
+              feats: score.feats,
+              songlength: score.songLength,
+              trafficcount: score.id,
+            },
+          },
+        });
+      }
+
+      for (const score of eliteScores) {
+        fullScoreArray.push({
+          $: {
+            scoretype: 0,
+          },
+          league: {
+            $: {
+              leagueid: 2,
+            },
+            ride: {
+              username: score.player.username,
+              vehicleid: score.vehicleId,
+              score: score.score,
+              ridetime: Math.floor(score.rideTime.getTime() / 1000),
+              feats: score.feats,
+              songlength: score.songLength,
+              trafficcount: score.id,
+            },
+          },
+        });
+      }
+
+      return xmlBuilder.buildObject({
+        RESULTS: {
+          scores: fullScoreArray,
         },
       });
     }
-
-    for (const score of proScores) {
-      fullScoreArray.push({
-        $: {
-          scoretype: 0,
-        },
-        league: {
-          $: {
-            leagueid: 1,
-          },
-          ride: {
-            username: score.player.username,
-            vehicleid: score.vehicleId,
-            score: score.score,
-            ridetime: Math.floor(score.rideTime.getTime() / 1000),
-            feats: score.feats,
-            songlength: score.songLength,
-            trafficcount: score.id,
-          },
-        },
-      });
-    }
-
-    for (const score of eliteScores) {
-      fullScoreArray.push({
-        $: {
-          scoretype: 0,
-        },
-        league: {
-          $: {
-            leagueid: 2,
-          },
-          ride: {
-            username: score.player.username,
-            vehicleid: score.vehicleId,
-            score: score.score,
-            ridetime: Math.floor(score.rideTime.getTime() / 1000),
-            feats: score.feats,
-            songlength: score.songLength,
-            trafficcount: score.id,
-          },
-        },
-      });
-    }
-
-    return xmlBuilder.buildObject({
-      RESULTS: {
-        scores: fullScoreArray,
-      },
-    });
-  });
+  );
 }

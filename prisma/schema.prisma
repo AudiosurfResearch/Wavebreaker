@@ -5,21 +5,25 @@ generator client {
   provider = "prisma-client-js"
 }
 
+//Change this!
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
 
 model User {
-  id           Int     @id @default(autoincrement())
-  username     String  @unique
-  steamid64    Int     @unique
-  steamid32    Int     @unique
-  locationid   Int?
-  gamePassword String?
-  accountType  Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
-  scores       Score[]
-  shouts       Shout[]
+  id          Int     @id @default(autoincrement())
+  username    String  @unique
+  steamid64   BigInt  @unique
+  steamid32   Int     @unique
+  locationid  Int?
+  accountType Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
+  scores      Score[]
+  shouts      Shout[]
+
+  //pray this doesn't implode
+  friends  User[] @relation("friends")
+  friendOf User[] @relation("friends")
 }
 
 model Song {

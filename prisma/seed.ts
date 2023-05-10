@@ -10,7 +10,10 @@ async function main() {
       steamid64: 696969,
       steamid32: 696969,
       locationid: 123,
+<<<<<<< HEAD
       gamePassword: "36c5e55204d2430aafe10aa4373bfb98", //plaintext: sussybaka
+=======
+>>>>>>> 2c30d08... Replace s
     },
   });
   console.log(john);
