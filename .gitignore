@@ -4,9 +4,16 @@ node_modules/
 .tmp/
 public/dist/
 !public/dist/.gitkeep
-.express-svelte/
 .env
 cert.pem
 key.pem
+wavebreaker_config.json
+*.js
+*.d.ts
+
+# Database stuff
+*.db
+*.db-journal
+prisma/migrations/
 *.sqlite
 prisma/migrations/
