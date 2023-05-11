@@ -16,7 +16,7 @@ model User {
   username    String  @unique
   steamid64   BigInt  @unique
   steamid32   Int     @unique
-  locationid  Int?
+  locationid  Int     @default(1)
   accountType Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
   scores      Score[]
   shouts      Shout[]

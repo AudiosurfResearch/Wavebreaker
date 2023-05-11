@@ -51,6 +51,44 @@ type ScoreWithPlayer = Prisma.ScoreGetPayload<{
   include: { player: true };
 }>;
 
+async function getSongScores(song: number, league: number): Promise<ScoreWithPlayer[]> {
+  return await prisma.score.findMany({
+    where: {
+      songId: song,
+      leagueId: league,
+    },
+    orderBy: {
+      score: "desc",
+    },
+    take: 11,
+    include: {
+      player: true,
+    },
+  });
+}
+
+function constructScoreResponseEntry(type: number, league: number, score: ScoreWithPlayer): object {
+  return {
+    $: {
+      scoretype: type,
+    },
+    league: {
+      $: {
+        leagueid: league,
+      },
+      ride: {
+        username: score.player.username,
+        vehicleid: score.vehicleId,
+        score: score.score,
+        ridetime: Math.floor(score.rideTime.getTime() / 1000),
+        feats: score.feats,
+        songlength: score.songLength,
+        trafficcount: score.id,
+      },
+    },
+  }
+}
+
 export default async function routes(
   fastify: FastifyInstance,
   options: Object
@@ -198,111 +236,21 @@ export default async function routes(
   }>(
     "/as_steamlogin/game_GetRidesSteamVerified.php",
     async (request, reply) => {
-      const casualScores: ScoreWithPlayer[] = await prisma.score.findMany({
-        where: {
-          songId: +request.body.songid,
-          leagueId: 0,
-        },
-        orderBy: {
-          score: "desc",
-        },
-        take: 11,
-        include: {
-          player: true,
-        },
-      });
-      const proScores: ScoreWithPlayer[] = await prisma.score.findMany({
-        where: {
-          songId: +request.body.songid,
-          leagueId: 1,
-        },
-        orderBy: {
-          score: "desc",
-        },
-        take: 11,
-        include: {
-          player: true,
-        },
-      });
-      const eliteScores: ScoreWithPlayer[] = await prisma.score.findMany({
-        where: {
-          songId: +request.body.songid,
-          leagueId: 2,
-        },
-        orderBy: {
-          score: "desc",
-        },
-        take: 11,
-        include: {
-          player: true,
-        },
-      });
+      const casualScores: ScoreWithPlayer[] = await getSongScores(request.body.songid, 0);
+      const proScores: ScoreWithPlayer[] = await getSongScores(request.body.songid, 1);
+      const eliteScores: ScoreWithPlayer[] = await getSongScores(request.body.songid, 2);
 
       let fullScoreArray: Object[] = [];
       for (const score of casualScores) {
-        fullScoreArray.push({
-          $: {
-            scoretype: 0,
-          },
-          league: {
-            $: {
-              leagueid: 0,
-            },
-            ride: {
-              username: score.player.username,
-              vehicleid: score.vehicleId,
-              score: score.score,
-              ridetime: Math.floor(score.rideTime.getTime() / 1000),
-              feats: score.feats,
-              songlength: score.songLength,
-              trafficcount: score.id,
-            },
-          },
-        });
+        fullScoreArray.push(constructScoreResponseEntry(0, 0, score));
       }
 
       for (const score of proScores) {
-        fullScoreArray.push({
-          $: {
-            scoretype: 0,
-          },
-          league: {
-            $: {
-              leagueid: 1,
-            },
-            ride: {
-              username: score.player.username,
-              vehicleid: score.vehicleId,
-              score: score.score,
-              ridetime: Math.floor(score.rideTime.getTime() / 1000),
-              feats: score.feats,
-              songlength: score.songLength,
-              trafficcount: score.id,
-            },
-          },
-        });
+        fullScoreArray.push(fullScoreArray.push(constructScoreResponseEntry(0, 1, score)));
       }
 
       for (const score of eliteScores) {
-        fullScoreArray.push({
-          $: {
-            scoretype: 0,
-          },
-          league: {
-            $: {
-              leagueid: 2,
-            },
-            ride: {
-              username: score.player.username,
-              vehicleid: score.vehicleId,
-              score: score.score,
-              ridetime: Math.floor(score.rideTime.getTime() / 1000),
-              feats: score.feats,
-              songlength: score.songLength,
-              trafficcount: score.id,
-            },
-          },
-        });
+        fullScoreArray.push(fullScoreArray.push(constructScoreResponseEntry(0, 2, score)));
       }
 
       return xmlBuilder.buildObject({

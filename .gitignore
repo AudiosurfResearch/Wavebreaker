@@ -7,7 +7,6 @@ public/dist/
 .env
 cert.pem
 key.pem
-wavebreaker_config.json
 *.js
 *.d.ts
 
@@ -16,3 +15,5 @@ wavebreaker_config.json
 *.db-journal
 prisma/migrations/
 *.sqlite
+
+wavebreaker_config.json
