@@ -16,4 +16,3 @@ wavebreaker_config.json
 *.db-journal
 prisma/migrations/
 *.sqlite
-prisma/migrations/
