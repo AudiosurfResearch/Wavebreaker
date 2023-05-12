@@ -51,11 +51,22 @@ type ScoreWithPlayer = Prisma.ScoreGetPayload<{
   include: { player: true };
 }>;
 
-async function getSongScores(song: number, league: number): Promise<ScoreWithPlayer[]> {
+async function getSongScores(
+  song: number,
+  league: number,
+  location: number = 0
+): Promise<ScoreWithPlayer[]> {
   return await prisma.score.findMany({
     where: {
       songId: song,
       leagueId: league,
+      ...(location > 0 && {
+        player: {
+          is: {
+            locationid: +location,
+          },
+        },
+      }),
     },
     orderBy: {
       score: "desc",
@@ -67,14 +78,17 @@ async function getSongScores(song: number, league: number): Promise<ScoreWithPla
   });
 }
 
-function constructScoreResponseEntry(type: number, league: number, score: ScoreWithPlayer): object {
+function constructScoreResponseEntry(
+  type: number,
+  score: ScoreWithPlayer
+): object {
   return {
     $: {
       scoretype: type,
     },
     league: {
       $: {
-        leagueid: league,
+        leagueid: score.leagueId,
       },
       ride: {
         username: score.player.username,
@@ -86,7 +100,7 @@ function constructScoreResponseEntry(type: number, league: number, score: ScoreW
         trafficcount: score.id,
       },
     },
-  }
+  };
 }
 
 export default async function routes(
@@ -236,26 +250,53 @@ export default async function routes(
   }>(
     "/as_steamlogin/game_GetRidesSteamVerified.php",
     async (request, reply) => {
-      const casualScores: ScoreWithPlayer[] = await getSongScores(request.body.songid, 0);
-      const proScores: ScoreWithPlayer[] = await getSongScores(request.body.songid, 1);
-      const eliteScores: ScoreWithPlayer[] = await getSongScores(request.body.songid, 2);
+      try {
+        let fullScoreArray: ScoreWithPlayer[] = [];
+        fullScoreArray.push(...(await getSongScores(+request.body.songid, 0)));
+        fullScoreArray.push(...(await getSongScores(+request.body.songid, 1)));
+        fullScoreArray.push(...(await getSongScores(+request.body.songid, 2)));
 
-      let fullScoreArray: Object[] = [];
-      for (const score of casualScores) {
-        fullScoreArray.push(constructScoreResponseEntry(0, 0, score));
+        var scoreResponseArray: Object[] = [];
+        for (const score of fullScoreArray) {
+          scoreResponseArray.push(constructScoreResponseEntry(0, score));
+        }
+
+        let nearbyScores: ScoreWithPlayer[] = [];
+        nearbyScores.push(
+          ...(await getSongScores(
+            +request.body.songid,
+            0,
+            request.body.locationid
+          ))
+        );
+        nearbyScores.push(
+          ...(await getSongScores(
+            +request.body.songid,
+            1,
+            request.body.locationid
+          ))
+        );
+        nearbyScores.push(
+          ...(await getSongScores(
+            +request.body.songid,
+            2,
+            request.body.locationid
+          ))
+        );
+
+        for (const score of nearbyScores) {
+          scoreResponseArray.push(constructScoreResponseEntry(1, score));
+        }
+      } catch (e) {
+        console.log(e);
+        return e;
       }
 
-      for (const score of proScores) {
-        fullScoreArray.push(fullScoreArray.push(constructScoreResponseEntry(0, 1, score)));
-      }
-
-      for (const score of eliteScores) {
-        fullScoreArray.push(fullScoreArray.push(constructScoreResponseEntry(0, 2, score)));
-      }
+      //TODO: Add friend score support
 
       return xmlBuilder.buildObject({
         RESULTS: {
-          scores: fullScoreArray,
+          scores: scoreResponseArray,
         },
       });
     }

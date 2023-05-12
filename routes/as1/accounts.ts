@@ -82,7 +82,7 @@ export default async function routes(
           steamid64: BigInt(steamTicketResponse.response.params.steamid),
         },
         data: {
-          locationid: request.body.locationid,
+          locationid: +request.body.locationid,
         },
       });
     } catch (e) {
