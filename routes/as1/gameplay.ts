@@ -209,12 +209,14 @@ export default async function routes(
           where: {
             userId: user.id,
             songId: song.id,
-            leagueId: request.body.league,
+            leagueId: +request.body.league,
           },
         });
 
-        await prisma.score.delete({ where: { id: prevScore.id } });
-      } catch (e) {}
+        if (prevScore.score >=request.body.score) await prisma.score.delete({ where: { id: prevScore.id } });
+      } catch (e) {
+        console.log(e);
+      }
 
       await prisma.score.create({
         data: {
