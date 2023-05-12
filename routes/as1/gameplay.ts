@@ -103,6 +103,25 @@ function constructScoreResponseEntry(
   };
 }
 
+async function getOrCreateSong(title: string, artist: string): Promise<Song> {
+  try {
+    var song: Song = await prisma.song.findFirstOrThrow({
+      where: {
+        title: title,
+        artist: artist,
+      },
+    });
+  } catch (e) {
+    song = await prisma.song.create({
+      data: {
+        title: title,
+        artist: artist,
+      },
+    });
+  }
+  return song;
+}
+
 export default async function routes(
   fastify: FastifyInstance,
   options: Object
@@ -119,21 +138,7 @@ export default async function routes(
 
     //TODO: Case insensitivity??? This is an issue depending on DB backend, tbh.
     //SQLite doesn't have viable case insensitive matching options
-    try {
-      var song: Song = await prisma.song.findFirstOrThrow({
-        where: {
-          title: request.body.song,
-          artist: request.body.artist,
-        },
-      });
-    } catch (e) {
-      song = await prisma.song.create({
-        data: {
-          title: request.body.song,
-          artist: request.body.artist,
-        },
-      });
-    }
+    let song = await getOrCreateSong(request.body.song, request.body.artist);
 
     try {
       var pb: Score = await prisma.score.findFirstOrThrow({
@@ -184,25 +189,8 @@ export default async function routes(
         });
       }
 
-      /*
-      TODO: Implement checks for the song submission hash
-    */
-
-      try {
-        var song: Song = await prisma.song.findFirstOrThrow({
-          where: {
-            title: request.body.song,
-            artist: request.body.artist,
-          },
-        });
-      } catch (e) {
-        song = await prisma.song.create({
-          data: {
-            title: request.body.song,
-            artist: request.body.artist,
-          },
-        });
-      }
+      //TODO: Implement checks for the song submission hash
+      let song = await getOrCreateSong(request.body.song, request.body.artist);
 
       try {
         let prevScore = await prisma.score.findFirstOrThrow({
