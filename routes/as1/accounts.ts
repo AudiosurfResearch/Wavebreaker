@@ -20,6 +20,15 @@ interface UpdateLocationRequest {
   locationid: number;
 }
 
+interface SteamSyncRequest {
+  steamusername: string;
+  snum: number;
+  s64: number;
+  ticket: string;
+  snums: string;
+  achstates: string;
+}
+
 export default async function routes(
   fastify: FastifyInstance,
   options: Object
@@ -98,4 +107,49 @@ export default async function routes(
       },
     });
   });
+
+  fastify.post<{
+    Body: SteamSyncRequest;
+  }>(
+    "/as_steamlogin/game_SteamSyncSteamVerified.php",
+    async (request, reply) => {
+      try {
+        const steamTicketResponse = await SteamUtils.verifySteamTicket(
+          request.body.ticket
+        );
+
+        var steamFriendList: number[] = request.body.snums
+          .split("x")
+          .map(Number);
+
+        try {
+          await prisma.user.update({
+            where: {
+              steamid64: BigInt(steamTicketResponse.response.params.steamid),
+            },
+            data: {
+              rivals: {
+                connect: steamFriendList.map((steamid32) => ({ steamid32 })),
+              },
+            },
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      } catch (e) {
+        console.error(e);
+        return e;
+      }
+    
+      //Nowhere near close to the response the real server gives
+      //We do not need to care for this endpoint though, because neither will the client
+      return xmlBuilder.buildObject({
+        RESULT: {
+          $: {
+            status: "success",
+          },
+        },
+      });
+    }
+  );
 }

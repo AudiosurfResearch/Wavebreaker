@@ -22,8 +22,8 @@ model User {
   shouts      Shout[]
 
   //pray this doesn't implode
-  friends  User[] @relation("friends")
-  friendOf User[] @relation("friends")
+  rivals  User[] @relation("friends")
+  challengers User[] @relation("friends")
 }
 
 model Song {

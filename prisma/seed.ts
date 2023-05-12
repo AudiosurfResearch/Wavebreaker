@@ -7,8 +7,8 @@ async function main() {
     update: {},
     create: {
       username: "John Audiosurf",
-      steamid64: 696969,
-      steamid32: 696969,
+      steamid64: 76561198315672331,
+      steamid32: 355406603,
       locationid: 123,
     },
   });
