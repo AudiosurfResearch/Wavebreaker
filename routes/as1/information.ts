@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import { Prisma, PrismaClient, Score, Shout, User } from "@prisma/client";
+import { Prisma, PrismaClient, Score, User } from "@prisma/client";
 import xml2js from "xml2js";
-import { SteamUtils } from "../../util/steam";
+import * as SteamUtils from "../../util/steam";
 
 const xmlBuilder = new xml2js.Builder();
 const prisma = new PrismaClient();
@@ -44,7 +44,7 @@ type ShoutWithAuthor = Prisma.ShoutGetPayload<{
 }>;
 
 async function getShoutsAsString(songId: number) {
-  let shoutResponse: string = "";
+  let shoutResponse = "";
   const shouts: ShoutWithAuthor[] = await prisma.shout.findMany({
     where: {
       songId: songId,
@@ -72,64 +72,59 @@ async function getShoutsAsString(songId: number) {
   return shoutResponse;
 }
 
-export default async function routes(
-  fastify: FastifyInstance,
-  options: Object
-) {
+export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: FetchTrackShapeRequest;
-  }>("/as/game_fetchtrackshape2.php", async (request, reply) => {
+  }>("/as/game_fetchtrackshape2.php", async (request) => {
     try {
-      var score: Score = await prisma.score.findUniqueOrThrow({
+      const score: Score = await prisma.score.findUniqueOrThrow({
         where: {
           id: request.body.ridd,
         },
       });
+
+      return score.trackShape;
     } catch (e) {
       return "failed";
     }
-    return score.trackShape;
   });
 
   fastify.post<{
     Body: FetchShoutsRequest;
-  }>("/as_steamlogin/game_fetchshouts_unicode.php", async (request, reply) => {
+  }>("/as_steamlogin/game_fetchshouts_unicode.php", async (request) => {
     return await getShoutsAsString(+request.body.songid[0]);
   });
 
   fastify.post<{
     Body: SendShoutSteamRequest;
-  }>(
-    "/as_steamlogin/game_sendShoutSteamVerified.php",
-    async (request, reply) => {
-      try {
-        var user: User = await SteamUtils.findUserByTicket(request.body.ticket);
+  }>("/as_steamlogin/game_sendShoutSteamVerified.php", async (request) => {
+    try {
+      const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
 
-        const updateSong = await prisma.song.update({
-          where: {
-            id: +request.body.songid,
-          },
-          data: {
-            shouts: {
-              create: {
-                authorId: user.id,
-                content: request.body.shout,
-              },
+      await prisma.song.update({
+        where: {
+          id: +request.body.songid,
+        },
+        data: {
+          shouts: {
+            create: {
+              authorId: user.id,
+              content: request.body.shout,
             },
           },
-        });
-      } catch (e) {
-        console.error(e);
-        return e;
-      }
+        },
+      });
 
       return await getShoutsAsString(+request.body.songid);
+    } catch (e) {
+      console.error(e);
+      return e;
     }
-  );
+  });
 
   fastify.post<{
     Body: CustomNewsSteamRequest;
-  }>("//as_steamlogin/game_CustomNews.php", async (request, reply) => {
+  }>("//as_steamlogin/game_CustomNews.php", async () => {
     //TODO: proper implementation
     return xmlBuilder.buildObject({
       RESULTS: {

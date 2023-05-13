@@ -15,7 +15,7 @@ const fastify = Fastify({
   },
 });
 
-fastify.listen({ port: WavebreakerConfig.port }, (err, address) => {
+fastify.listen({ port: WavebreakerConfig.port }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);

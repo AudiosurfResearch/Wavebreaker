@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, PrismaClient, User, Score, Song } from "@prisma/client";
 import xml2js from "xml2js";
-import { SteamUtils } from "../../util/steam";
+import * as SteamUtils from "../../util/steam";
 
 const xmlBuilder = new xml2js.Builder();
 const prisma = new PrismaClient();
@@ -53,13 +53,15 @@ type ScoreWithPlayer = Prisma.ScoreGetPayload<{
 
 async function getSongScores(
   song: number,
-  league: number,
-  location: number = 0
+  league = -1,
+  location = 0,
+  limit = 0,
+  byPlayers: number[] = []
 ): Promise<ScoreWithPlayer[]> {
   return await prisma.score.findMany({
     where: {
       songId: song,
-      leagueId: league,
+      ...(league > -1 && { leagueId: league }),
       ...(location > 0 && {
         player: {
           is: {
@@ -67,11 +69,18 @@ async function getSongScores(
           },
         },
       }),
+      ...(byPlayers.length != 0 && {
+        player: {
+          id: {
+            in: byPlayers,
+          },
+        },
+      }),
     },
     orderBy: {
       score: "desc",
     },
-    take: 11,
+    ...(limit > 0 && { take: 11 }),
     include: {
       player: true,
     },
@@ -105,6 +114,7 @@ function constructScoreResponseEntry(
 
 async function getOrCreateSong(title: string, artist: string): Promise<Song> {
   try {
+    // eslint-disable-next-line no-var
     var song: Song = await prisma.song.findFirstOrThrow({
       where: {
         title: title,
@@ -122,13 +132,10 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
   return song;
 }
 
-export default async function routes(
-  fastify: FastifyInstance,
-  options: Object
-) {
+export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: FetchSongIdSteamRequest;
-  }>("/as_steamlogin/game_fetchsongid_unicode.php", async (request, reply) => {
+  }>("/as_steamlogin/game_fetchsongid_unicode.php", async (request) => {
     //Validation
     if (
       request.body.artist.toLowerCase() == "unknown" &&
@@ -138,14 +145,24 @@ export default async function routes(
 
     //TODO: Case insensitivity??? This is an issue depending on DB backend, tbh.
     //SQLite doesn't have viable case insensitive matching options
-    let song = await getOrCreateSong(request.body.song, request.body.artist);
+    const song = await getOrCreateSong(request.body.song, request.body.artist);
 
     try {
-      var pb: Score = await prisma.score.findFirstOrThrow({
+      const pb: Score = await prisma.score.findFirstOrThrow({
         where: {
           songId: song.id,
           userId: request.body.uid,
           leagueId: request.body.league,
+        },
+      });
+
+      return xmlBuilder.buildObject({
+        RESULT: {
+          $: {
+            status: "allgood",
+          },
+          songid: pb.songId,
+          pb: pb.score,
         },
       });
     } catch (e) {
@@ -159,52 +176,30 @@ export default async function routes(
         },
       });
     }
-
-    return xmlBuilder.buildObject({
-      RESULT: {
-        $: {
-          status: "allgood",
-        },
-        songid: pb.songId,
-        pb: pb.score,
-      },
-    });
   });
 
   fastify.post<{
     Body: SendRideSteamRequest;
-  }>(
-    "/as_steamlogin/game_SendRideSteamVerified.php",
-    async (request, reply) => {
-      try {
-        var user: User = await SteamUtils.findUserByTicket(request.body.ticket);
-      } catch (e) {
-        console.log(e);
-        return xmlBuilder.buildObject({
-          RESULT: {
-            $: {
-              status: "failed",
-            },
-          },
-        });
-      }
+  }>("/as_steamlogin/game_SendRideSteamVerified.php", async (request) => {
+    try {
+      const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
 
       //TODO: Implement checks for the song submission hash
-      let song = await getOrCreateSong(request.body.song, request.body.artist);
+      const song = await getOrCreateSong(
+        request.body.song,
+        request.body.artist
+      );
 
-      try {
-        let prevScore = await prisma.score.findFirstOrThrow({
-          where: {
-            userId: user.id,
-            songId: song.id,
-            leagueId: +request.body.league,
-          },
-        });
+      const prevScore = await prisma.score.findFirstOrThrow({
+        where: {
+          userId: user.id,
+          songId: song.id,
+          leagueId: +request.body.league,
+        },
+      });
 
-        if (prevScore.score >=request.body.score) await prisma.score.delete({ where: { id: prevScore.id } });
-      } catch (e) {
-        console.log(e);
-      }
+      if (prevScore.score >= request.body.score)
+        await prisma.score.delete({ where: { id: prevScore.id } });
 
       await prisma.score.create({
         data: {
@@ -232,63 +227,118 @@ export default async function routes(
           songid: song.id,
         },
       });
+    } catch (e) {
+      console.log(e);
+      return xmlBuilder.buildObject({
+        RESULT: {
+          $: {
+            status: "failed",
+          },
+        },
+      });
     }
-  );
+  });
 
   fastify.post<{
     Body: GetRidesSteamRequest;
-  }>(
-    "/as_steamlogin/game_GetRidesSteamVerified.php",
-    async (request, reply) => {
-      try {
-        let fullScoreArray: ScoreWithPlayer[] = [];
-        fullScoreArray.push(...(await getSongScores(+request.body.songid, 0)));
-        fullScoreArray.push(...(await getSongScores(+request.body.songid, 1)));
-        fullScoreArray.push(...(await getSongScores(+request.body.songid, 2)));
+  }>("/as_steamlogin/game_GetRidesSteamVerified.php", async (request) => {
+    try {
+      const user = await SteamUtils.findUserWithRivalsByTicket(
+        request.body.ticket
+      );
 
-        var scoreResponseArray: Object[] = [];
-        for (const score of fullScoreArray) {
-          scoreResponseArray.push(constructScoreResponseEntry(0, score));
-        }
+      //Global scores
+      const fullScoreArray: ScoreWithPlayer[] = [];
+      fullScoreArray.push(
+        ...(await getSongScores(+request.body.songid, 0, 0, 11))
+      );
+      fullScoreArray.push(
+        ...(await getSongScores(+request.body.songid, 1, 0, 11))
+      );
+      fullScoreArray.push(
+        ...(await getSongScores(+request.body.songid, 2, 0, 11))
+      );
 
-        let nearbyScores: ScoreWithPlayer[] = [];
-        nearbyScores.push(
-          ...(await getSongScores(
-            +request.body.songid,
-            0,
-            request.body.locationid
-          ))
-        );
-        nearbyScores.push(
-          ...(await getSongScores(
-            +request.body.songid,
-            1,
-            request.body.locationid
-          ))
-        );
-        nearbyScores.push(
-          ...(await getSongScores(
-            +request.body.songid,
-            2,
-            request.body.locationid
-          ))
-        );
-
-        for (const score of nearbyScores) {
-          scoreResponseArray.push(constructScoreResponseEntry(1, score));
-        }
-      } catch (e) {
-        console.log(e);
-        return e;
+      const scoreResponseArray: object[] = [];
+      for (const score of fullScoreArray) {
+        scoreResponseArray.push(constructScoreResponseEntry(0, score));
       }
 
-      //TODO: Add friend score support
+      //Nearby scores
+      const nearbyScores: ScoreWithPlayer[] = [];
+      nearbyScores.push(
+        ...(await getSongScores(
+          +request.body.songid,
+          0,
+          request.body.locationid,
+          11
+        ))
+      );
+      nearbyScores.push(
+        ...(await getSongScores(
+          +request.body.songid,
+          1,
+          request.body.locationid,
+          11
+        ))
+      );
+      nearbyScores.push(
+        ...(await getSongScores(
+          +request.body.songid,
+          2,
+          request.body.locationid,
+          11
+        ))
+      );
+
+      for (const score of nearbyScores) {
+        scoreResponseArray.push(constructScoreResponseEntry(1, score));
+      }
+
+      //Rival scores
+      //Get the list of IDs of the user's rivals
+      const rivalIds = user.rivals.map((rival) => rival.id);
+      const friendScores: ScoreWithPlayer[] = [];
+      friendScores.push(
+        ...(await getSongScores(
+          +request.body.songid,
+          1,
+          request.body.locationid,
+          11,
+          rivalIds
+        ))
+      );
+      friendScores.push(
+        ...(await getSongScores(
+          +request.body.songid,
+          2,
+          request.body.locationid,
+          11,
+          rivalIds
+        ))
+      );
+      friendScores.push(
+        ...(await getSongScores(
+          +request.body.songid,
+          3,
+          request.body.locationid,
+          11,
+          rivalIds
+        ))
+      );
+
+      for (const score of friendScores) {
+        scoreResponseArray.push(constructScoreResponseEntry(2, score));
+      }
 
       return xmlBuilder.buildObject({
         RESULTS: {
           scores: scoreResponseArray,
         },
       });
+    } catch (e) {
+      console.log(e);
+      return e;
     }
-  );
+  });
 }

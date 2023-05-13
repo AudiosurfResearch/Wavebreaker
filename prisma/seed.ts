@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, User } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
@@ -7,7 +7,7 @@ async function main() {
     update: {},
     create: {
       username: "John Audiosurf",
-      steamid64: 76561198315672331,
+      steamid64: 76561198315672331n,
       steamid32: 355406603,
       locationid: 123,
     },
