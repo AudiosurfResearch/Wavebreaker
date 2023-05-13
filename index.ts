@@ -1,9 +1,11 @@
 import Fastify from "fastify";
 import formbody from "@fastify/formbody";
+import httpsRedirect from "fastify-https-redirect";
 import WavebreakerConfig from "./wavebreaker_config.json";
 import accountsRouter from "./routes/as1/accounts";
 import gameplayRouter from "./routes/as1/gameplay";
 import informationRouter from "./routes/as1/information";
+import radioRouter from "./routes/as1/radio";
 import fs from "fs";
 
 const fastify = Fastify({
@@ -22,8 +24,10 @@ fastify.listen({ port: WavebreakerConfig.port }, (err) => {
   }
 });
 
+fastify.register(httpsRedirect);
 fastify.register(formbody); //So we can parse requests that use application/x-www-form-urlencoded
 
 fastify.register(accountsRouter);
 fastify.register(gameplayRouter);
 fastify.register(informationRouter);
+fastify.register(radioRouter);

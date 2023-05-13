@@ -298,6 +298,8 @@ export default async function routes(fastify: FastifyInstance) {
       //Rival scores
       //Get the list of IDs of the user's rivals
       const rivalIds = user.rivals.map((rival) => rival.id);
+      rivalIds.push(user.id); //So our own score is included, for easier comparison
+
       const friendScores: ScoreWithPlayer[] = [];
       friendScores.push(
         ...(await getSongScores(

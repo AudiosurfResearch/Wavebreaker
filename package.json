@@ -42,6 +42,7 @@
     "@fastify/formbody": "^7.0.1",
     "@prisma/client": "^4.1.1",
     "fastify": "^4.3.0",
+    "fastify-https-redirect": "^1.0.4",
     "steamapi": "^2.2.0",
     "steamid": "^2.0.0",
     "xml2js": "^0.5.0"
