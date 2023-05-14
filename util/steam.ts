@@ -22,14 +22,13 @@ type UserWithRivals = Prisma.UserGetPayload<{
 
 export const steamApi = new SteamAPI(WavebreakerConfig.steamApiKey);
 
-export async function findUserByTicket(ticket: string, includes: Prisma.UserInclude = {}): Promise<User> {
+export async function findUserByTicket(ticket: string): Promise<User> {
   const ticketResponse = await verifySteamTicket(ticket);
 
   const user: User = await prisma.user.findFirstOrThrow({
     where: {
       steamid64: BigInt(await ticketResponse.response.params.steamid),
-    },
-    include: includes
+    }
   });
   return user;
 }

@@ -3,13 +3,13 @@
         {
             "artist": "Wavebreaker",
             "title": "Example entry 1",
-            "cgrFileUrl": "https://audio-surf.com/as/asradio/ASR_PedroCamacho_AudiosurfOverture.cgr",
+            "cgrFileUrl": "http://localhost/as/asradio/ASR_PedroCamacho_AudiosurfOverture.cgr",
             "externalUrl": "https://github.com/AudiosurfResearch/Wavebreaker"
         },
         {
             "artist": "Wavebreaker",
             "title": "Example entry 2",
-            "cgrFileUrl": "https://audio-surf.com/as/asradio/ASR_PedroCamacho_AudiosurfOverture.cgr",
+            "cgrFileUrl": "http://localhost/as/asradio/ASR_PedroCamacho_AudiosurfOverture.cgr",
             "externalUrl": "https://github.com/AudiosurfResearch/Wavebreaker"
         }
     ]
