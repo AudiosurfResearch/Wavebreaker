@@ -40,7 +40,7 @@ const fastify = Fastify({
   }),
 });
 
-fastify.listen({ port: WavebreakerConfig.port }, (err) => {
+fastify.listen({ port: WavebreakerConfig.port, host: "0.0.0.0" }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
