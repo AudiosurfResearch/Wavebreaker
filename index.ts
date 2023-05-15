@@ -40,12 +40,15 @@ const fastify = Fastify({
   }),
 });
 
-fastify.listen({ port: WavebreakerConfig.port, host: "0.0.0.0" }, (err) => {
-  if (err) {
-    fastify.log.error(err);
-    process.exit(1);
+fastify.listen(
+  { port: WavebreakerConfig.port, host: WavebreakerConfig.host },
+  (err) => {
+    if (err) {
+      fastify.log.error(err);
+      process.exit(1);
+    }
   }
-});
+);
 
 if (WavebreakerConfig.environment == "development")
   fastify.register(httpsRedirect); //HTTPS redirect for development, please use nginx or whatever for this in prod
