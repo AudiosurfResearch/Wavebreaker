@@ -1,9 +1,6 @@
 {
   "name": "wavebreaker",
   "version": "1.0.0",
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
-  },
   "description": "Audiosurf custom server written in TypeScript.",
   "main": "index.js",
   "scripts": {

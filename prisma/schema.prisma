@@ -13,7 +13,7 @@ datasource db {
 
 model User {
   id          Int     @id @default(autoincrement())
-  username    String  @unique
+  username    String
   steamid64   BigInt  @unique
   steamid32   Int     @unique
   locationid  Int     @default(1)

@@ -10,6 +10,8 @@ import radioRouter from "./routes/as1/radio";
 import fs from "fs";
 import path from "path";
 
+globalThis.__basedir = __dirname; //Set global variable for the base directory
+
 //weird hack to select logger based on environment
 const logger = {
   ...(WavebreakerConfig.environment == "development" && {

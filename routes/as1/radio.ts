@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import WavebreakerRadioConfig from "../../wavebreaker_radio_entries.json";
+import fs from "fs";
 
 type RadioEntry = {
   title: string;
@@ -12,6 +12,7 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.get(
     "/as/asradio/game_asradiolist5.php",
     async () => {
+      const WavebreakerRadioConfig = JSON.parse(fs.readFileSync(globalThis.__basedir + "/wavebreaker_radio_entries.json", "utf-8"));
       if (WavebreakerRadioConfig.availableSongs.length == 0) return "";
       
       const separator = "-:*x-";

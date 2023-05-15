@@ -8,7 +8,6 @@ public/dist/
 cert.pem
 key.pem
 *.js
-*.d.ts
 
 # Database stuff
 *.db
@@ -16,4 +15,9 @@ key.pem
 prisma/migrations/
 *.sqlite
 
+# Wavebreaker-specific
+wavebreaker_radio_entries.json
 wavebreaker_config.json
+
+# Ignore Quest3D channel groups
+*.cgr

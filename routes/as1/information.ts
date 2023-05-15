@@ -76,6 +76,12 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: FetchTrackShapeRequest;
   }>("/as/game_fetchtrackshape2.php", async (request) => {
+    /**
+     * TODO: Test if this works in a prod environment
+     * It doesn't work in a debug environment, because the game requests it over HTTP
+     * ...and then the weird ass fastify redirect makes it a GET request and strips all parameters.
+     * I should probably somehow get the hook to go and replace HTTP with HTTPS.
+     */
     try {
       const score: Score = await prisma.score.findUniqueOrThrow({
         where: {
@@ -85,6 +91,7 @@ export default async function routes(fastify: FastifyInstance) {
 
       return score.trackShape;
     } catch (e) {
+      console.log(e);
       return "failed";
     }
   });

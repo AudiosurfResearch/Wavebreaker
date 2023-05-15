@@ -190,16 +190,21 @@ export default async function routes(fastify: FastifyInstance) {
         request.body.artist
       );
 
-      const prevScore = await prisma.score.findFirstOrThrow({
-        where: {
-          userId: user.id,
-          songId: song.id,
-          leagueId: +request.body.league,
-        },
-      });
+      try {
+        const prevScore = await prisma.score.findFirstOrThrow({
+          where: {
+            userId: user.id,
+            songId: song.id,
+            leagueId: +request.body.league,
+          },
+        });
 
-      if (prevScore.score >= request.body.score)
-        await prisma.score.delete({ where: { id: prevScore.id } });
+        if (prevScore.score >= request.body.score)
+          await prisma.score.delete({ where: { id: prevScore.id } });
+      } catch (e) {
+        console.log(e);
+        //No previous score, so we're good
+      }
 
       await prisma.score.create({
         data: {
