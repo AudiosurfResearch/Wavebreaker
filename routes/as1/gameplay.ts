@@ -136,9 +136,16 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: FetchSongIdSteamRequest;
   }>("/as_steamlogin/game_fetchsongid_unicode.php", async (request) => {
+    fastify.log.info(
+      "Requesting song ID for " +
+        request.body.artist +
+        " - " +
+        request.body.song
+    );
+
     //Validation
     if (
-      request.body.artist.toLowerCase() == "unknown" &&
+      request.body.artist.toLowerCase() == "unknown" ||
       request.body.song.toLowerCase() == "unknown"
     )
       return "failed";
@@ -199,11 +206,18 @@ export default async function routes(fastify: FastifyInstance) {
           },
         });
 
-        if (prevScore.score >= request.body.score)
+        if (prevScore.score >= request.body.score) {
+          fastify.log.info("No previous score found");
           await prisma.score.delete({ where: { id: prevScore.id } });
+        }
       } catch (e) {
-        console.log(e);
-        //No previous score, so we're good
+        if (e instanceof Prisma.NotFoundError)
+          fastify.log.info(
+            "No previous score by user %d on song %d in league %d",
+            user.id,
+            song.id,
+            +request.body.league
+          );
       }
 
       await prisma.score.create({
@@ -224,6 +238,14 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
 
+      fastify.log.info(
+        "Play submitted by user %d on song %d in league %d, score: %d\nSubmit code: %s",
+        user.id,
+        +request.body.songid,
+        +request.body.league,
+        +request.body.score,
+        request.body.submitcode
+      );
       return xmlBuilder.buildObject({
         RESULT: {
           $: {
@@ -233,7 +255,7 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
     } catch (e) {
-      console.log(e);
+      fastify.log.error(e);
       return xmlBuilder.buildObject({
         RESULT: {
           $: {
@@ -344,7 +366,7 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
     } catch (e) {
-      console.log(e);
+      fastify.log.error(e);
       return e;
     }
   });

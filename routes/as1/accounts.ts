@@ -53,6 +53,7 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
 
+      fastify.log.info("Game auth request for user %d", user.id);
       return xmlBuilder.buildObject({
         RESULT: {
           $: {
@@ -65,7 +66,7 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
     } catch (e) {
-      console.error(e);
+      fastify.log.error(e);
       return e;
     }
   });

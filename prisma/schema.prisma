@@ -20,6 +20,7 @@ model User {
   accountType Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
   scores      Score[]
   shouts      Shout[]
+  joinedAt   DateTime @default(now())
 
   //pray this doesn't implode
   rivals  User[] @relation("friends")
