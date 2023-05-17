@@ -14,39 +14,4 @@ Replicates pretty much all of the original server's features, unless I've missed
 
 # Config
 The server uses two config files at the root of the project: ``wavebreaker_config.json`` and ``wavebreaker_radio_entries.json``.
-
-Server config example:
-```json
-{
-    "port": 443,
-    "host": "0.0.0.0"
-    "https": {
-        "key": "./key.pem",
-        "cert": "./cert.pem",
-        "passphrase": "yeah"
-    },
-    "steamApiKey": "YOURKEYHERE",
-    "logger": true,
-    "environment": "development"
-}
-```
-
-Radio config example:
-```json
-{
-    "availableSongs": [
-        {
-            "artist": "Wavebreaker",
-            "title": "Example entry 1",
-            "cgrFileUrl": "http://localhost/as/asradio/Test1.cgr",
-            "externalUrl": "https://github.com/AudiosurfResearch/Wavebreaker"
-        },
-        {
-            "artist": "Wavebreaker",
-            "title": "Example entry 2",
-            "cgrFileUrl": "http://localhost/as/asradio/Test2.cgr",
-            "externalUrl": "https://github.com/AudiosurfResearch/Wavebreaker"
-        }
-    ]
-}
-```
+Look at the example files in there, they should be self-explanatory.

@@ -25,6 +25,7 @@
   "homepage": "https://github.com/AudiosurfResearch/Wavebreaker#readme",
   "devDependencies": {
     "@types/node": "^18.6.1",
+    "@types/node-steam-openid": "^1.0.0",
     "@types/steamapi": "^2.2.2",
     "@types/steamid": "^2.0.1",
     "@types/xml2js": "^0.4.11",
@@ -38,10 +39,12 @@
   },
   "dependencies": {
     "@fastify/formbody": "^7.0.1",
+    "@fastify/jwt": "^6.7.1",
     "@fastify/static": "^6.10.1",
     "@prisma/client": "^4.1.1",
     "fastify": "^4.3.0",
     "fastify-https-redirect": "^1.0.4",
+    "node-steam-openid": "^1.0.1",
     "steamapi": "^2.2.0",
     "steamid": "^2.0.0",
     "xml2js": "^0.5.0"

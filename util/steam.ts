@@ -20,7 +20,7 @@ type UserWithRivals = Prisma.UserGetPayload<{
   include: { rivals: true, challengers: true };
 }>;
 
-export const steamApi = new SteamAPI(WavebreakerConfig.steamApiKey);
+export const steamApi = new SteamAPI(WavebreakerConfig.steam.apiKey);
 
 export async function findUserByTicket(ticket: string): Promise<User> {
   const ticketResponse = await verifySteamTicket(ticket);
@@ -53,7 +53,7 @@ export async function verifySteamTicket(
 ): Promise<SteamTokenValidationResponse> {
   const apiCheckUrl =
     "https://api.steampowered.com/ISteamUserAuth/AuthenticateUserTicket/v1/?key=" +
-    WavebreakerConfig.steamApiKey +
+    WavebreakerConfig.steam.apiKey +
     "&appid=12900&ticket=" +
     ticket;
   const response = await fetch(apiCheckUrl);
