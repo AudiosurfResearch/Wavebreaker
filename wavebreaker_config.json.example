@@ -10,8 +10,9 @@
     },
     "steam": {
         "apiKey": "steam_api_key_here",
-        "realm": "http://localhost:5000",
-        "returnUrl": "http://localhost:5000/auth/steam/authenticate"
+        "realm": "http://wavebreakerdev.local",
+        "returnUrl": "http://wavebreakerdev.local/login/steamreturn"
     },
     "environment": "development"
+    "token_secret": "yuruyaka_ni_kuzure_kowareteku"
 }

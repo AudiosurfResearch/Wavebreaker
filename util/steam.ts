@@ -27,7 +27,7 @@ export async function findUserByTicket(ticket: string): Promise<User> {
 
   const user: User = await prisma.user.findFirstOrThrow({
     where: {
-      steamid64: BigInt(await ticketResponse.response.params.steamid),
+      steamid64: ticketResponse.response.params.steamid,
     }
   });
   return user;
@@ -38,7 +38,7 @@ export async function findUserWithRivalsByTicket(ticket: string): Promise<UserWi
 
   const user: UserWithRivals = await prisma.user.findFirstOrThrow({
     where: {
-      steamid64: BigInt(await ticketResponse.response.params.steamid),
+      steamid64: ticketResponse.response.params.steamid,
     },
     include: {
       rivals: true,

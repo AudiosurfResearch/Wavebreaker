@@ -12,18 +12,19 @@ datasource db {
 }
 
 model User {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   username    String
-  steamid64   BigInt  @unique
-  steamid32   Int     @unique
-  locationid  Int     @default(1)
-  accountType Int     @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
+  steamid64   String   @unique
+  steamid32   Int      @unique
+  locationid  Int      @default(1)
+  accountType Int      @default(1) // 1 = regular, 2 = Moderator, 3 = Wavebreaker Team
   scores      Score[]
   shouts      Shout[]
-  joinedAt   DateTime @default(now())
+  joinedAt    DateTime @default(now())
+  avatarUrl   String
 
   //pray this doesn't implode
-  rivals  User[] @relation("friends")
+  rivals      User[] @relation("friends")
   challengers User[] @relation("friends")
 }
 

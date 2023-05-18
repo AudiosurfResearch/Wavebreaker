@@ -43,13 +43,14 @@ export default async function routes(fastify: FastifyInstance) {
       );
 
       const user: User = await prisma.user.upsert({
-        where: { steamid64: steamId.getBigIntID() },
+        where: { steamid64: steamId.getSteamID64() },
         update: { username: steamUser.nickname },
         create: {
           username: steamUser.nickname,
-          steamid64: steamId.getBigIntID(),
+          steamid64: steamId.getSteamID64(),
           steamid32: steamId.accountid,
           locationid: 1,
+          avatarUrl: steamUser.avatar.large,
         },
       });
 
@@ -81,7 +82,7 @@ export default async function routes(fastify: FastifyInstance) {
 
       await prisma.user.update({
         where: {
-          steamid64: BigInt(steamTicketResponse.response.params.steamid),
+          steamid64: steamTicketResponse.response.params.steamid,
         },
         data: {
           locationid: +request.body.locationid,
@@ -116,7 +117,7 @@ export default async function routes(fastify: FastifyInstance) {
       try {
         await prisma.user.update({
           where: {
-            steamid64: BigInt(steamTicketResponse.response.params.steamid),
+            steamid64: steamTicketResponse.response.params.steamid,
           },
           data: {
             rivals: {

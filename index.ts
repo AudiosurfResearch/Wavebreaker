@@ -2,7 +2,6 @@ import Fastify from "fastify";
 import formbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import httpsRedirect from "fastify-https-redirect";
-import fastifyJwt from "@fastify/jwt";
 import WavebreakerConfig from "./wavebreaker_config.json";
 import accountsRouter from "./routes/as1/accounts";
 import gameplayRouter from "./routes/as1/gameplay";
@@ -11,6 +10,7 @@ import radioRouter from "./routes/as1/radio";
 import apiAuthRouter from "./routes/api/auth";
 import fs from "fs";
 import path from "path";
+import authPlugin from "./util/authPlugin";
 
 globalThis.__basedir = __dirname; //Set global variable for the base directory
 
@@ -59,15 +59,20 @@ if (
   WavebreakerConfig.environment == "development" &&
   WavebreakerConfig.useHttps
 )
-  fastify.register(httpsRedirect); //HTTPS redirect for development, please use nginx or whatever for this in prod
+  fastify.register(httpsRedirect); //HTTPS redirect for development, PLEASE use nginx or whatever for this in prod, I *beg* you.
 
-fastify.register(fastifyJwt, {
-  secret: WavebreakerConfig.token_secret,
-});
+fastify.register(authPlugin); //Register authentication plugin
 fastify.register(formbody); //So we can parse requests that use application/x-www-form-urlencoded
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "RadioSongs"),
   prefix: "/as/asradio/",
+});
+
+fastify.setErrorHandler(function (error, request, reply) {
+  // Log error
+  this.log.error(error);
+  // Send error response
+  reply.status(500).send({ error: error });
 });
 
 //Register game endpoints
