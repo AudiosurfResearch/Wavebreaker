@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient, User } from "@prisma/client";
+import { User } from "@prisma/client";
+import { prisma } from "../../util/db";
 import * as SteamUtils from "../../util/steam";
 import xml2js from "xml2js";
 import SteamID from "steamid";
 
 const xmlBuilder = new xml2js.Builder();
-const prisma = new PrismaClient();
 
 interface SteamLoginRequest {
   steamusername: string;

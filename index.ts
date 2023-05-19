@@ -71,8 +71,10 @@ fastify.register(fastifyStatic, {
 fastify.setErrorHandler(function (error, request, reply) {
   // Log error
   this.log.error(error);
-  // Send error response
-  reply.status(500).send({ error: error });
+  if (error.code === 'P2025') { // Prisma: not found
+    reply.status(404).send({ error: error.message });
+  }
+  reply.status(500).send({ error: error.message });
 });
 
 //Register game endpoints

@@ -1,9 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient, User } from "@prisma/client";
+import { User } from "@prisma/client";
+import { prisma } from "../../util/db";
 import SteamAuth from "node-steam-openid";
 import WavebreakerConfig from "../../wavebreaker_config.json";
-
-const prisma = new PrismaClient();
 
 const steam = new SteamAuth({
   realm: WavebreakerConfig.steam.realm,
@@ -20,12 +19,17 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.get(
     "/api/auth/verifyToken",
     { onRequest: fastify.authenticate },
-    async (request, reply) => {
-      return request.user;
+    async (request) => {
+      const user: User = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: request.user.id,
+        },
+      });
+      return user;
     }
   );
 
-  fastify.get("/api/auth/steam/return", async (request, reply) => {
+  fastify.get("/api/auth/steam/return", async (request) => {
     const steamUser = await steam.authenticate(request);
     const user: User = await prisma.user.findUniqueOrThrow({
       where: {

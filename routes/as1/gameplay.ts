@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
-import { Prisma, PrismaClient, User, Score, Song } from "@prisma/client";
+import { Prisma, User, Score, Song } from "@prisma/client";
+import { prisma } from "../../util/db";
 import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
 
 const xmlBuilder = new xml2js.Builder();
-const prisma = new PrismaClient();
 
 interface FetchSongIdSteamRequest {
   artist: string;

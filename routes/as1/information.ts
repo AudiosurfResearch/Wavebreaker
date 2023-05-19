@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
-import { Prisma, PrismaClient, Score, User } from "@prisma/client";
+import { Prisma, Score, User } from "@prisma/client";
 import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
+import { prisma } from "../../util/db";
 
 const xmlBuilder = new xml2js.Builder();
-const prisma = new PrismaClient();
 
 interface FetchTrackShapeRequest {
   ridd: number;
