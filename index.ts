@@ -1,16 +1,24 @@
+//Fastify and plugins
 import Fastify from "fastify";
 import formbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import httpsRedirect from "fastify-https-redirect";
-import WavebreakerConfig from "./wavebreaker_config.json";
+import authPlugin from "./util/authPlugin";
+
+//Game routes
 import accountsRouter from "./routes/as1/accounts";
 import gameplayRouter from "./routes/as1/gameplay";
 import informationRouter from "./routes/as1/information";
 import radioRouter from "./routes/as1/radio";
+
+//API routes
 import apiAuthRouter from "./routes/api/auth";
+import apiUsersRouter from "./routes/api/users";
+
+//Miscellaneous
 import fs from "fs";
 import path from "path";
-import authPlugin from "./util/authPlugin";
+import WavebreakerConfig from "./wavebreaker_config.json";
 
 globalThis.__basedir = __dirname; //Set global variable for the base directory
 
@@ -71,7 +79,8 @@ fastify.register(fastifyStatic, {
 fastify.setErrorHandler(function (error, request, reply) {
   // Log error
   this.log.error(error);
-  if (error.code === 'P2025') { // Prisma: not found
+  if (error.code === "P2025") {
+    // Prisma: not found
     reply.status(404).send({ error: error.message });
   }
   reply.status(500).send({ error: error.message });
@@ -85,3 +94,4 @@ fastify.register(radioRouter);
 
 //Wavebreaker API
 fastify.register(apiAuthRouter);
+fastify.register(apiUsersRouter);
