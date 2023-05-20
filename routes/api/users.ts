@@ -4,20 +4,43 @@ import { prisma } from "../../util/db";
 
 interface GetUserParams {
   id: number;
+  getExtendedInfo?: boolean;
+}
+
+interface ExtendedUser extends User {
+  totalScore: number;
 }
 
 export default async function routes(fastify: FastifyInstance) {
-  fastify.get<{ Params: GetUserParams }>(
-    "/api/users/getUser/:id",
+  fastify.post<{ Body: GetUserParams }>(
+    "/api/users/getUser",
     async (request, reply) => {
-      const id = +request.params.id; //damn it why
+      const id = request.body.id;
       try {
-        const user: User = await prisma.user.findUniqueOrThrow({
+        const userBase: User = await prisma.user.findUniqueOrThrow({
           where: {
             id: id,
           },
         });
-        return user;
+
+        if (request.body.getExtendedInfo) {
+          const totalScore = await prisma.score.aggregate({
+            where: {
+              userId: id,
+            },
+            _sum: {
+              score: true,
+            },
+          });
+
+          const user: ExtendedUser = userBase as ExtendedUser;
+          if (totalScore._sum.score) user.totalScore = totalScore._sum.score;
+          else user.totalScore = 0;
+
+          return user;
+        }
+
+        return userBase;
       } catch (e) {
         if (
           e instanceof Prisma.PrismaClientKnownRequestError &&
