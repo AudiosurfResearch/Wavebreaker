@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.json",
-    "start": "npm run build && node index.js"
+    "start": "npm run build && node index.js",
+    "dev": "npm run build && dotenv -e .env.development -- node index.js",
+    "migrate:postgres": "dotenv -e .env.development -- npx prisma migrate deploy"
   },
   "repository": {
     "type": "git",

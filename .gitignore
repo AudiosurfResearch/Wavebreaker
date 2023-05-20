@@ -4,7 +4,6 @@ node_modules/
 .tmp/
 public/dist/
 !public/dist/.gitkeep
-.env
 cert.pem
 key.pem
 *.js
@@ -14,6 +13,9 @@ key.pem
 *.db-journal
 prisma/migrations/
 *.sqlite
+
+#.env files
+*.env*
 
 # Wavebreaker-specific
 wavebreaker_radio_entries.json
