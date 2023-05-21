@@ -15,3 +15,5 @@ Replicates pretty much all of the original server's features, unless I've missed
 # Config
 The server uses two config files at the root of the project: ``wavebreaker_config.json`` and ``wavebreaker_radio_entries.json``.
 Look at the example files in there, they should be self-explanatory.
+
+You also need to set the DATABASE_URL environment variable to point to a PostgreSQL server.

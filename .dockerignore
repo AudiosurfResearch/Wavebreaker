@@ -3,3 +3,4 @@ npm-debug.log
 migrations
 wavebreaker*.json
 .env.development
+*.pem
