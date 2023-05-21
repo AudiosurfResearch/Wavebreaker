@@ -24,7 +24,7 @@ globalThis.__basedir = __dirname; //Set global variable for the base directory
 
 //weird hack to select logger based on environment
 const logger = {
-  ...(WavebreakerConfig.environment == "development" && {
+  ...(process.env.NODE_ENV == "development" && {
     logger: {
       transport: {
         target: "pino-pretty",
@@ -35,7 +35,7 @@ const logger = {
       },
     },
   }),
-  ...(WavebreakerConfig.environment != "development" && {
+  ...(process.env.NODE_ENV != "development" && {
     logger: true,
   }),
 };
@@ -43,7 +43,7 @@ const logger = {
 const fastify = Fastify({
   ...logger,
   //For HTTPS in production, please use nginx or whatever
-  ...(WavebreakerConfig.environment == "development" &&
+  ...(process.env.NODE_ENV == "development" &&
     WavebreakerConfig.useHttps && {
       https: {
         key: fs.readFileSync(WavebreakerConfig.https.key),
@@ -64,7 +64,7 @@ fastify.listen(
 );
 
 if (
-  WavebreakerConfig.environment == "development" &&
+  process.env.NODE_ENV == "development" &&
   WavebreakerConfig.useHttps
 )
   fastify.register(httpsRedirect); //HTTPS redirect for development, PLEASE use nginx or whatever for this in prod, I *beg* you.

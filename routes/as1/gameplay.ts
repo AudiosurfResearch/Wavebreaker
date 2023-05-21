@@ -117,8 +117,14 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
     // eslint-disable-next-line no-var
     var song: Song = await prisma.song.findFirstOrThrow({
       where: {
-        title: title,
-        artist: artist,
+        title: {
+          equals: title,
+          mode: "insensitive"
+        },
+        artist: {
+          equals: artist,
+          mode: "insensitive"
+        },
       },
     });
   } catch (e) {

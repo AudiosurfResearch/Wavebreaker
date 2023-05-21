@@ -1,6 +1,6 @@
 {
     "logger": true,
-    "port": 443,
+    "port": 5000,
     "host": "0.0.0.0",
     "useHttps": false,
     "https": {
@@ -13,6 +13,5 @@
         "realm": "http://wavebreakerdev.local",
         "returnUrl": "http://wavebreakerdev.local/login/steamreturn"
     },
-    "environment": "development"
     "token_secret": "yuruyaka_ni_kuzure_kowareteku"
 }

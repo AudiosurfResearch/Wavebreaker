@@ -1,7 +1,7 @@
 {
   "name": "wavebreaker",
   "version": "1.0.0",
-  "description": "Audiosurf custom server written in TypeScript.",
+  "description": "Backend of Wavebreaker, an open-source reimplementation of Audiosurf's game server",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
