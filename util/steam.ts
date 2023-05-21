@@ -1,5 +1,5 @@
 import { PrismaClient, User, Prisma } from "@prisma/client";
-import WavebreakerConfig from "../wavebreaker_config.json";
+import WavebreakerConfig from "../config/wavebreaker_config.json";
 import SteamAPI from "steamapi";
 
 const prisma = new PrismaClient();

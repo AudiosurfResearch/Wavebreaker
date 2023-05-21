@@ -1,4 +1,4 @@
-import WavebreakerConfig from "../wavebreaker_config.json";
+import WavebreakerConfig from "../config/wavebreaker_config.json";
 import fastifyJwt from "@fastify/jwt";
 import { FastifyReply, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";

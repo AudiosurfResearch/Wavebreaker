@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { User } from "@prisma/client";
 import { prisma } from "../../util/db";
 import SteamAuth from "node-steam-openid";
-import WavebreakerConfig from "../../wavebreaker_config.json";
+import WavebreakerConfig from "../../config/wavebreaker_config.json";
 
 const steam = new SteamAuth({
   realm: WavebreakerConfig.steam.realm,

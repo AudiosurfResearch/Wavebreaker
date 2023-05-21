@@ -18,7 +18,7 @@ import apiUsersRouter from "./routes/api/users";
 //Miscellaneous
 import fs from "fs";
 import path from "path";
-import WavebreakerConfig from "./wavebreaker_config.json";
+import WavebreakerConfig from "./config/wavebreaker_config.json";
 
 globalThis.__basedir = __dirname; //Set global variable for the base directory
 
