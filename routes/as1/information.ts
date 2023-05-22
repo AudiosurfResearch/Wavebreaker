@@ -102,7 +102,7 @@ export default async function routes(fastify: FastifyInstance) {
     return await getShoutsAsString(+request.body.songid[0]);
   });
 
-  fastify.post<{
+  fastify.get<{
     Body: SendShoutSteamRequest;
   }>("/as_steamlogin/game_sendShoutSteamVerified.php", async (request) => {
     try {

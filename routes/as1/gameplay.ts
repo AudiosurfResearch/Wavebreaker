@@ -119,11 +119,11 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
       where: {
         title: {
           equals: title,
-          mode: "insensitive"
+          mode: "insensitive",
         },
         artist: {
           equals: artist,
-          mode: "insensitive"
+          mode: "insensitive",
         },
       },
     });
@@ -203,6 +203,7 @@ export default async function routes(fastify: FastifyInstance) {
         request.body.artist
       );
 
+      let prevPlays = 0;
       try {
         const prevScore = await prisma.score.findFirstOrThrow({
           where: {
@@ -211,19 +212,36 @@ export default async function routes(fastify: FastifyInstance) {
             leagueId: +request.body.league,
           },
         });
+        prevPlays = prevScore.playCount;
 
         if (prevScore.score >= request.body.score) {
-          fastify.log.info("No previous score found");
           await prisma.score.delete({ where: { id: prevScore.id } });
+        } else {
+          //Weird hacky workaround. Maybe actually start using upsert like a normal person
+          //TODO: Fix this, make everything right, end the endless suffering
+          await prisma.score.updateMany({
+            where: {
+              userId: user.id,
+              songId: song.id,
+              leagueId: +request.body.league,
+            },
+            data: {
+              playCount: prevPlays + 1,
+            },
+          });
         }
       } catch (e) {
-        if (e instanceof Prisma.NotFoundError)
+        if (
+          e instanceof Prisma.PrismaClientKnownRequestError &&
+          e.code === "P2025"
+        )
           fastify.log.info(
             "No previous score by user %d on song %d in league %d",
             user.id,
             song.id,
             +request.body.league
           );
+        else throw e;
       }
 
       await prisma.score.create({
@@ -241,6 +259,7 @@ export default async function routes(fastify: FastifyInstance) {
           iss: +request.body.iss,
           isj: +request.body.isj,
           songId: +request.body.songid,
+          playCount: prevPlays + 1,
         },
       });
 

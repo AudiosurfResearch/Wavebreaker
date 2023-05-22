@@ -19,6 +19,7 @@ import apiUsersRouter from "./routes/api/users";
 import fs from "fs";
 import path from "path";
 import WavebreakerConfig from "./config/wavebreaker_config.json";
+import { Prisma } from "@prisma/client";
 
 globalThis.__basedir = __dirname; //Set global variable for the base directory
 
@@ -79,7 +80,7 @@ fastify.register(fastifyStatic, {
 fastify.setErrorHandler(function (error, request, reply) {
   // Log error
   this.log.error(error);
-  if (error.code === "P2025") {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
     // Prisma: not found
     reply.status(404).send({ error: error.message });
   }
