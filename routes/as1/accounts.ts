@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { User } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import { prisma } from "../../util/db";
 import * as SteamUtils from "../../util/steam";
 import xml2js from "xml2js";
@@ -126,7 +126,8 @@ export default async function routes(fastify: FastifyInstance) {
           },
         });
       } catch (e) {
-        console.error(e);
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") fastify.log.info("Adding friends: " + e.meta);
+        throw e;
       }
 
       //Nowhere near close to the response the real server gives

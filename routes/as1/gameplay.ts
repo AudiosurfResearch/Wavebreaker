@@ -209,7 +209,7 @@ export default async function routes(fastify: FastifyInstance) {
       },
     });
 
-    prisma.score.upsert({
+    const score = await prisma.score.upsert({
       where: {
         userId_leagueId_songId: {
           songId: song.id,
@@ -244,13 +244,17 @@ export default async function routes(fastify: FastifyInstance) {
       },
     });
 
+    if (!score)
+      throw new Error("Score submission failed.");
+
     fastify.log.info(
-      "Play submitted by user %d on song %d in league %d, score: %d\nSubmit code: %s",
+      "Play submitted by user %d on song %d in league %d, score: %d\nSubmit code: %s\nPlay #%d",
       user.id,
       +request.body.songid,
       +request.body.league,
       +request.body.score,
-      request.body.submitcode
+      request.body.submitcode,
+      score.playCount
     );
 
     return xmlBuilder.buildObject({

@@ -73,7 +73,7 @@ async function getShoutsAsString(songId: number) {
 }
 
 export default async function routes(fastify: FastifyInstance) {
-  fastify.post<{
+  fastify.get<{
     Body: FetchTrackShapeRequest;
   }>("/as/game_fetchtrackshape2.php", async (request) => {
     /**
