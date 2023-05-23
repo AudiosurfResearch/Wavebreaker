@@ -194,101 +194,73 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: SendRideSteamRequest;
   }>("/as_steamlogin/game_SendRideSteamVerified.php", async (request) => {
-    try {
-      const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
+    const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
 
-      //TODO: Implement checks for the song submission hash
-      const song = await getOrCreateSong(
-        request.body.song,
-        request.body.artist
-      );
+    //TODO: Implement checks for the song submission hash
+    const song = await getOrCreateSong(request.body.song, request.body.artist);
 
-      let prevPlays = 0;
-      try {
-        const prevScore = await prisma.score.findFirstOrThrow({
-          where: {
-            userId: user.id,
-            songId: song.id,
-            leagueId: +request.body.league,
-          },
-        });
-        prevPlays = prevScore.playCount;
-
-        if (prevScore.score >= request.body.score) {
-          await prisma.score.delete({ where: { id: prevScore.id } });
-        } else {
-          //Weird hacky workaround. Maybe actually start using upsert like a normal person
-          //TODO: Fix this, make everything right, end the endless suffering
-          await prisma.score.updateMany({
-            where: {
-              userId: user.id,
-              songId: song.id,
-              leagueId: +request.body.league,
-            },
-            data: {
-              playCount: prevPlays + 1,
-            },
-          });
-        }
-      } catch (e) {
-        if (
-          e instanceof Prisma.PrismaClientKnownRequestError &&
-          e.code === "P2025"
-        )
-          fastify.log.info(
-            "No previous score by user %d on song %d in league %d",
-            user.id,
-            song.id,
-            +request.body.league
-          );
-        else throw e;
-      }
-
-      await prisma.score.create({
-        data: {
-          userId: +user.id,
+    const prevScore = await prisma.score.findUnique({
+      where: {
+        userId_leagueId_songId: {
+          songId: song.id,
+          userId: user.id,
           leagueId: +request.body.league,
-          trackShape: request.body.trackshape,
-          xstats: request.body.xstats,
-          density: +request.body.density,
-          vehicleId: +request.body.vehicle,
-          score: +request.body.score,
-          feats: request.body.feats,
-          songLength: +request.body.songlength,
-          goldThreshold: +request.body.goldthreshold,
-          iss: +request.body.iss,
-          isj: +request.body.isj,
-          songId: +request.body.songid,
-          playCount: prevPlays + 1,
         },
-      });
+      },
+    });
 
-      fastify.log.info(
-        "Play submitted by user %d on song %d in league %d, score: %d\nSubmit code: %s",
-        user.id,
-        +request.body.songid,
-        +request.body.league,
-        +request.body.score,
-        request.body.submitcode
-      );
-      return xmlBuilder.buildObject({
-        RESULT: {
-          $: {
-            status: "allgood",
-          },
-          songid: song.id,
+    prisma.score.upsert({
+      where: {
+        userId_leagueId_songId: {
+          songId: song.id,
+          userId: user.id,
+          leagueId: +request.body.league,
         },
-      });
-    } catch (e) {
-      fastify.log.error(e);
-      return xmlBuilder.buildObject({
-        RESULT: {
-          $: {
-            status: "failed",
-          },
+      },
+      create: {
+        userId: +user.id,
+        leagueId: +request.body.league,
+        trackShape: request.body.trackshape,
+        xstats: request.body.xstats,
+        density: +request.body.density,
+        vehicleId: +request.body.vehicle,
+        score: +request.body.score,
+        feats: request.body.feats,
+        songLength: +request.body.songlength,
+        goldThreshold: +request.body.goldthreshold,
+        iss: +request.body.iss,
+        isj: +request.body.isj,
+        songId: +request.body.songid,
+      },
+      update: {
+        playCount: {
+          increment: 1,
         },
-      });
-    }
+        ...(prevScore &&
+          prevScore.score < +request.body.score && {
+            score: +request.body.score,
+            rideTime: new Date(),
+          }),
+      },
+    });
+
+    fastify.log.info(
+      "Play submitted by user %d on song %d in league %d, score: %d\nSubmit code: %s",
+      user.id,
+      +request.body.songid,
+      +request.body.league,
+      +request.body.score,
+      request.body.submitcode
+    );
+
+    return xmlBuilder.buildObject({
+      RESULT: {
+        $: {
+          status: "allgood",
+        },
+        songid: song.id,
+      },
+    });
   });
 
   fastify.post<{

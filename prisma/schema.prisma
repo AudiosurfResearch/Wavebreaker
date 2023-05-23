@@ -54,6 +54,8 @@ model Score {
   playCount     Int      @default(1) //Total play count on this difficulty
   song          Song     @relation(fields: [songId], references: [id])
   songId        Int
+
+  @@unique([userId, leagueId, songId])
 }
 
 model Shout {
