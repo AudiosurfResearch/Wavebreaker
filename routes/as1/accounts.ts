@@ -75,37 +75,31 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: UpdateLocationRequest;
   }>("/as_steamlogin/game_UpdateLocationid.php", async (request) => {
-    try {
-      const steamTicketResponse = await SteamUtils.verifySteamTicket(
-        request.body.ticket
-      );
+    const steamTicketResponse = await SteamUtils.verifySteamTicket(
+      request.body.ticket
+    );
 
-      await prisma.user.update({
-        where: {
-          steamid64: steamTicketResponse.response.params.steamid,
-        },
-        data: {
-          locationid: +request.body.locationid,
-        },
-      });
+    await prisma.user.update({
+      where: {
+        steamid64: steamTicketResponse.response.params.steamid,
+      },
+      data: {
+        locationid: +request.body.locationid,
+      },
+    });
 
-      return xmlBuilder.buildObject({
-        RESULT: {
-          $: {
-            status: "success",
-          },
+    return xmlBuilder.buildObject({
+      RESULT: {
+        $: {
+          status: "success",
         },
-      });
-    } catch (e) {
-      console.error(e);
-      return e;
-    }
+      },
+    });
   });
 
   fastify.post<{
     Body: SteamSyncRequest;
   }>("/as_steamlogin/game_SteamSyncSteamVerified.php", async (request) => {
-    try {
       const steamTicketResponse = await SteamUtils.verifySteamTicket(
         request.body.ticket
       );
@@ -126,7 +120,12 @@ export default async function routes(fastify: FastifyInstance) {
           },
         });
       } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") fastify.log.info("Adding friends: " + e.meta);
+        if (
+          e instanceof Prisma.PrismaClientKnownRequestError &&
+          e.code === "P2025"
+        )
+        fastify.log.info("Adding friends: " + e.meta?.cause); //this is gonna work trust me bro
+
         throw e;
       }
 
@@ -139,9 +138,5 @@ export default async function routes(fastify: FastifyInstance) {
           },
         },
       });
-    } catch (e) {
-      console.error(e);
-      return e;
-    }
   });
 }
