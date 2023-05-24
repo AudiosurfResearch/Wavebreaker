@@ -11,7 +11,7 @@ key.pem
 # Database stuff
 *.db
 *.db-journal
-prisma/migrations/
+#prisma/migrations/
 *.sqlite
 
 #.env files
