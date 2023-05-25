@@ -10,6 +10,7 @@ interface GetUserParams {
 interface ExtendedUser extends User {
   totalScore: number;
   totalPlays: number;
+  favoriteCharacter?: number;
   favoriteSong?: Song;
 }
 
@@ -52,6 +53,24 @@ export default async function routes(fastify: FastifyInstance) {
             },
           });
           user.favoriteSong = favSongScore?.song;
+
+          //Get user's most used character
+          const charGroup = await prisma.score.groupBy({
+            by: ["vehicleId"],
+            where: {
+              userId: id,
+            },
+            _sum: {
+              playCount: true,
+            },
+            orderBy: {
+              _sum: {
+                playCount: "desc",
+              },
+            },
+          });
+
+          if (charGroup[0]) user.favoriteCharacter = charGroup[0].vehicleId;
 
           return user;
         }

@@ -125,8 +125,7 @@ export default async function routes(fastify: FastifyInstance) {
           e.code === "P2025"
         )
         fastify.log.info("Adding friends: " + e.meta?.cause); //this is gonna work trust me bro
-
-        throw e;
+        else throw e;
       }
 
       //Nowhere near close to the response the real server gives
