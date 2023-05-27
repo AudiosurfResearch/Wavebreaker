@@ -4,7 +4,6 @@ import formbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import httpsRedirect from "fastify-https-redirect";
 import authPlugin from "./util/authPlugin";
-import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
 
 //Game routes
 import accountsRouter from "./routes/as1/accounts";
@@ -55,7 +54,7 @@ const fastify = Fastify({
         passphrase: WavebreakerConfig.https.passphrase,
       },
     }),
-}).withTypeProvider<JsonSchemaToTsProvider>();
+});
 
 fastify.listen(
   { port: WavebreakerConfig.port, host: WavebreakerConfig.host },
