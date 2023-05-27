@@ -1,11 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, Song, User } from "@prisma/client";
 import { prisma } from "../../util/db";
+import { Static, Type } from "@sinclair/typebox";
 
-interface GetUserParams {
-  id: number;
-  getExtendedInfo?: boolean;
-}
+const getUserQuerySchema = Type.Object({
+  id: Type.Number(),
+  getExtendedInfo: Type.Optional(Type.Boolean({ default: false })),
+});
+
+type GetUserQuery = Static<typeof getUserQuerySchema>;
 
 interface ExtendedUser extends User {
   totalScore: number;
@@ -15,10 +18,11 @@ interface ExtendedUser extends User {
 }
 
 export default async function routes(fastify: FastifyInstance) {
-  fastify.post<{ Body: GetUserParams }>(
+  fastify.get<{ Querystring: GetUserQuery }>(
     "/api/users/getUser",
+    { schema: { querystring: getUserQuerySchema } },
     async (request, reply) => {
-      const id = request.body.id;
+      const id = request.query.id;
       try {
         const userBase: User = await prisma.user.findUniqueOrThrow({
           where: {
@@ -26,7 +30,8 @@ export default async function routes(fastify: FastifyInstance) {
           },
         });
 
-        if (request.body.getExtendedInfo) {
+        if (request.query.getExtendedInfo) {
+          //Get user's total score and total plays
           const scoreAggregation = await prisma.score.aggregate({
             where: {
               userId: id,
@@ -41,6 +46,7 @@ export default async function routes(fastify: FastifyInstance) {
           user.totalScore = scoreAggregation._sum.score ?? 0;
           user.totalPlays = scoreAggregation._sum.playCount ?? 0;
 
+          //Get user's favorite song (or, rather, song of the score with the most plays)
           const favSongScore = await prisma.score.findFirst({
             where: {
               userId: id,

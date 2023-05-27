@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.json",
-    "start": "npm run build && node index.js",
+    "start": "node index.js",
     "dev": "npm run build && dotenv -e .env.development -- node index.js",
     "migrate:postgres": "dotenv -e .env.development -- npx prisma migrate deploy"
   },
@@ -45,7 +45,9 @@
     "@fastify/formbody": "^7.0.1",
     "@fastify/jwt": "^6.7.1",
     "@fastify/static": "^6.10.1",
+    "@fastify/type-provider-json-schema-to-ts": "^2.2.2",
     "@prisma/client": "^4.14.1",
+    "@sinclair/typebox": "^0.28.13",
     "fastify": "^4.3.0",
     "fastify-https-redirect": "^1.0.4",
     "node-steam-openid": "^1.0.1",

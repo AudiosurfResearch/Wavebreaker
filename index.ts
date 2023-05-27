@@ -4,6 +4,7 @@ import formbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import httpsRedirect from "fastify-https-redirect";
 import authPlugin from "./util/authPlugin";
+import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
 
 //Game routes
 import accountsRouter from "./routes/as1/accounts";
@@ -14,6 +15,8 @@ import radioRouter from "./routes/as1/radio";
 //API routes
 import apiAuthRouter from "./routes/api/auth";
 import apiUsersRouter from "./routes/api/users";
+import apiServerRouter from "./routes/api/server";
+import apiScoresRouter from "./routes/api/scores";
 
 //Miscellaneous
 import fs from "fs";
@@ -52,7 +55,7 @@ const fastify = Fastify({
         passphrase: WavebreakerConfig.https.passphrase,
       },
     }),
-});
+}).withTypeProvider<JsonSchemaToTsProvider>();
 
 fastify.listen(
   { port: WavebreakerConfig.port, host: WavebreakerConfig.host },
@@ -64,10 +67,7 @@ fastify.listen(
   }
 );
 
-if (
-  process.env.NODE_ENV == "development" &&
-  WavebreakerConfig.useHttps
-)
+if (process.env.NODE_ENV == "development" && WavebreakerConfig.useHttps)
   fastify.register(httpsRedirect); //HTTPS redirect for development, PLEASE use nginx or whatever for this in prod, I *beg* you.
 
 fastify.register(authPlugin); //Register authentication plugin
@@ -80,7 +80,10 @@ fastify.register(fastifyStatic, {
 fastify.setErrorHandler(function (error, request, reply) {
   // Log error
   this.log.error(error);
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2025"
+  ) {
     // Prisma: not found
     reply.status(404).send({ error: error.message });
   }
@@ -96,3 +99,5 @@ fastify.register(radioRouter);
 //Wavebreaker API
 fastify.register(apiAuthRouter);
 fastify.register(apiUsersRouter);
+fastify.register(apiServerRouter);
+fastify.register(apiScoresRouter);

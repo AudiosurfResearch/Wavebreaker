@@ -11,6 +11,7 @@ COPY prisma ./prisma/
 RUN npm install
 # If you are building your code for production
 # RUN npm ci --omit=dev
+RUN npm build
 
 # Generate Prisma client for DB stuff
 RUN npx prisma generate
