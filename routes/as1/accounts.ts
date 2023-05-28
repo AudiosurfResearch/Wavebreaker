@@ -44,13 +44,20 @@ export default async function routes(fastify: FastifyInstance) {
 
       const user: User = await prisma.user.upsert({
         where: { steamid64: steamId.getSteamID64() },
-        update: { username: steamUser.nickname },
+        update: {
+          username: steamUser.nickname,
+          avatarUrl: steamUser.avatar.large,
+          avatarUrlMedium: steamUser.avatar.medium,
+          avatarUrlSmall: steamUser.avatar.small,
+        },
         create: {
           username: steamUser.nickname,
           steamid64: steamId.getSteamID64(),
           steamid32: steamId.accountid,
           locationid: 1,
           avatarUrl: steamUser.avatar.large,
+          avatarUrlMedium: steamUser.avatar.medium,
+          avatarUrlSmall: steamUser.avatar.small,
         },
       });
 
@@ -100,42 +107,42 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: SteamSyncRequest;
   }>("/as_steamlogin/game_SteamSyncSteamVerified.php", async (request) => {
-      const steamTicketResponse = await SteamUtils.verifySteamTicket(
-        request.body.ticket
-      );
+    const steamTicketResponse = await SteamUtils.verifySteamTicket(
+      request.body.ticket
+    );
 
-      const steamFriendList: number[] = request.body.snums
-        .split("x")
-        .map(Number);
+    const steamFriendList: number[] = request.body.snums.split("x").map(Number);
 
-      try {
-        await prisma.user.update({
-          where: {
-            steamid64: steamTicketResponse.response.params.steamid,
-          },
-          data: {
-            rivals: {
-              connect: steamFriendList.map((steamid32) => ({ steamid32 })),
-            },
-          },
-        });
-      } catch (e) {
-        if (
-          e instanceof Prisma.PrismaClientKnownRequestError &&
-          e.code === "P2025"
-        )
-        fastify.log.info("Adding friends: " + e.meta?.cause); //this is gonna work trust me bro
-        else throw e;
-      }
-
-      //Nowhere near close to the response the real server gives
-      //We do not need to care for this endpoint though, because neither will the client
-      return xmlBuilder.buildObject({
-        RESULT: {
-          $: {
-            status: "success",
+    try {
+      await prisma.user.update({
+        where: {
+          steamid64: steamTicketResponse.response.params.steamid,
+        },
+        data: {
+          rivals: {
+            connect: steamFriendList.map((steamid32) => ({ steamid32 })),
           },
         },
       });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === "P2025"
+      )
+        fastify.log.info(
+          "Adding friends: " + e.meta?.cause
+        ); //this is gonna work trust me bro
+      else throw e;
+    }
+
+    //Nowhere near close to the response the real server gives
+    //We do not need to care for this endpoint though, because neither will the client
+    return xmlBuilder.buildObject({
+      RESULT: {
+        $: {
+          status: "success",
+        },
+      },
+    });
   });
 }
