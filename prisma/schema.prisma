@@ -21,8 +21,8 @@ model User {
   shouts          Shout[]
   joinedAt        DateTime @default(now())
   avatarUrl       String
-  avatarUrlMedium String
-  avatarUrlSmall  String
+  avatarUrlMedium String   @default("")
+  avatarUrlSmall  String   @default("")
 
   //pray this doesn't implode
   rivals      User[] @relation("friends")
