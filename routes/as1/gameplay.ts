@@ -3,6 +3,7 @@ import { Prisma, User, Score, Song } from "@prisma/client";
 import { prisma } from "../../util/db";
 import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
+import crypto from "crypto";
 
 const xmlBuilder = new xml2js.Builder();
 
@@ -156,8 +157,6 @@ export default async function routes(fastify: FastifyInstance) {
     )
       return "failed";
 
-    //TODO: Case insensitivity??? This is an issue depending on DB backend, tbh.
-    //SQLite doesn't have viable case insensitive matching options
     const song = await getOrCreateSong(request.body.song, request.body.artist);
 
     try {
@@ -196,7 +195,32 @@ export default async function routes(fastify: FastifyInstance) {
   }>("/as_steamlogin/game_SendRideSteamVerified.php", async (request) => {
     const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
 
-    //TODO: Implement checks for the song submission hash
+    const submissionCodePlaintext =
+      "oenuthrrprwvqmjwqbxk" +
+      request.body.score +
+      request.body.songlength +
+      request.body.density +
+      request.body.trackshape +
+      request.body.vehicle +
+      "2347nstho4eu" +
+      request.body.song +
+      request.body.artist;
+    const submissionHash = crypto
+      .createHash("md5")
+      .update(submissionCodePlaintext)
+      .digest("hex");
+    if (submissionHash != request.body.submitcode) {
+      fastify.log.error(
+        "Invalid submit code: " +
+          submissionCodePlaintext +
+          " - " +
+          submissionHash +
+          " - " +
+          request.body.submitcode
+      );
+      throw new Error("Invalid submit code.");
+    }
+
     const song = await getOrCreateSong(request.body.song, request.body.artist);
 
     const prevScore = await prisma.score.findUnique({
@@ -244,8 +268,7 @@ export default async function routes(fastify: FastifyInstance) {
       },
     });
 
-    if (!score)
-      throw new Error("Score submission failed.");
+    if (!score) throw new Error("Score submission failed.");
 
     fastify.log.info(
       "Play submitted by user %d on song %d in league %d, score: %d\nSubmit code: %s\nPlay #%d",
