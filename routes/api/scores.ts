@@ -67,7 +67,8 @@ export default async function routes(fastify: FastifyInstance) {
           }),
         },
         orderBy: {
-          ...(request.query.timeSort && {
+          //TODO: Figure out how to make these two mutually exclusive in the schema.
+          ...(!request.query.scoreSort && request.query.timeSort && {
             rideTime: request.query.timeSort,
           }),
           ...(request.query.scoreSort && {
