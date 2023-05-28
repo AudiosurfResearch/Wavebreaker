@@ -15,6 +15,7 @@ const getScoresQuerySchema = Type.Object(
         default: "desc",
       })
     ),
+    includePlayer: Type.Optional(Type.Boolean({ default: false })),
     page: Type.Number({ default: 1, minimum: 1 }),
     pageSize: Type.Number({ default: 10, minimum: 1, maximum: 100 }),
   },
@@ -47,7 +48,6 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
 
-
       //God.
       const scores = await prisma.score.findMany({
         skip: (request.query.page - 1) * request.query.pageSize,
@@ -72,6 +72,12 @@ export default async function routes(fastify: FastifyInstance) {
           }),
           ...(request.query.scoreSort && {
             score: request.query.scoreSort,
+          }),
+        },
+        include: {
+          song: true,
+          ...(request.query.includePlayer && {
+            player: true,
           }),
         },
       });
