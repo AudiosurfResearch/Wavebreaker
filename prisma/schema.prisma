@@ -20,9 +20,9 @@ model User {
   scores          Score[]
   shouts          Shout[]
   joinedAt        DateTime @default(now())
-  avatarUrl       String
-  avatarUrlMedium String   @default("")
-  avatarUrlSmall  String   @default("")
+  avatarUrl       String?
+  avatarUrlMedium String?
+  avatarUrlSmall  String?
 
   //pray this doesn't implode
   rivals      User[] @relation("friends")
@@ -30,11 +30,15 @@ model User {
 }
 
 model Song {
-  id     Int     @id @default(autoincrement())
-  title  String
-  artist String
-  scores Score[]
-  shouts Shout[]
+  id                Int     @id @default(autoincrement())
+  title             String
+  artist            String
+  mbid              String?  
+  musicbrainzTitle  String?
+  musicbrainzArtist String?
+  coverUrl          String?
+  scores            Score[]
+  shouts            Shout[]
 }
 
 model Score {

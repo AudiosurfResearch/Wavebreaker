@@ -193,8 +193,6 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: SendRideSteamRequest;
   }>("/as_steamlogin/game_SendRideSteamVerified.php", async (request) => {
-    const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
-
     const submissionCodePlaintext =
       "oenuthrrprwvqmjwqbxk" +
       request.body.score +
@@ -220,6 +218,8 @@ export default async function routes(fastify: FastifyInstance) {
       );
       throw new Error("Invalid submit code.");
     }
+
+    const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
 
     const song = await getOrCreateSong(request.body.song, request.body.artist);
 
