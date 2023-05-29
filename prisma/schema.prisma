@@ -44,7 +44,7 @@ model Song {
 model Score {
   id            Int      @id @default(autoincrement())
   userId        Int
-  player        User     @relation(fields: [userId], references: [id])
+  player        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   leagueId      Int
   trackShape    String
   xstats        String
@@ -58,7 +58,7 @@ model Score {
   iss           Int
   isj           Int
   playCount     Int      @default(1) //Total play count on this difficulty
-  song          Song     @relation(fields: [songId], references: [id])
+  song          Song     @relation(fields: [songId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   songId        Int
 
   @@unique([userId, leagueId, songId])
@@ -67,9 +67,9 @@ model Score {
 model Shout {
   id          Int      @id @default(autoincrement())
   authorId    Int
-  author      User     @relation(fields: [authorId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   songId      Int
-  song        Song     @relation(fields: [songId], references: [id])
+  song        Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
   content     String
   timeCreated DateTime @default(now())
 }
