@@ -9,7 +9,8 @@ type RadioEntry = {
 };
 
 export default async function routes(fastify: FastifyInstance) {
-  fastify.get(
+  //idk why this uses POST but it does
+  fastify.post(
     "/as/asradio/game_asradiolist5.php",
     async () => {
       const WavebreakerRadioConfig = JSON.parse(fs.readFileSync(globalThis.__basedir + "/config/wavebreaker_radio_entries.json", "utf-8"));
