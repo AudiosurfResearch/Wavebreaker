@@ -26,8 +26,8 @@ export default fp(async function (fastify) {
       try {
         await request.jwtVerify();
       } catch (err) {
-        fastify.log.error(err);
-        reply.send(err);
+        fastify.log.error("JWT verification failed: " + err);
+        reply.status(401).send({ error: "Unauthorized" });
       }
     }
   );

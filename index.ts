@@ -85,9 +85,9 @@ fastify.setErrorHandler(function (error, request, reply) {
     error.code === "P2025"
   ) {
     // Prisma: not found
-    reply.status(404).send({ error: error.message });
+    reply.status(404).send({ error: "Not found"});
   }
-  reply.status(500).send({ error: error.message });
+  reply.status(500).send({ error: "An error has occurred." });
 });
 
 //Register game endpoints
