@@ -1,7 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
-import { Prisma } from "@prisma/client";
 
 const getSongQuerySchema = Type.Object(
   {
@@ -17,25 +16,15 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: GetSongQuery }>(
     "/api/songs/getSong",
     { schema: { querystring: getSongQuerySchema } },
-    async (request, reply) => {
-      try {
-        const song = await prisma.song.findFirstOrThrow({
-          where: {
-            id: request.query.id,
-          },
-          include: {
-            ...(request.query.includeShouts && { shouts: true }),
-          },
-        });
+    async (request) => {
+      const song = await prisma.song.findFirstOrThrow({
+        where: {
+          id: request.query.id,
+        },
+        ...(request.query.includeShouts && { include: { shouts: true } }),
+      });
 
-        return song;
-      } catch (e) {
-        if (
-          e instanceof Prisma.PrismaClientKnownRequestError &&
-          e.code === "P2025"
-        )
-          reply.status(404).send({ error: "User not found" });
-      }
+      return song;
     }
   );
 }
