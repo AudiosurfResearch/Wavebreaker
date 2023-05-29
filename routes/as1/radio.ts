@@ -12,7 +12,7 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.get(
     "/as/asradio/game_asradiolist5.php",
     async () => {
-      const WavebreakerRadioConfig = JSON.parse(fs.readFileSync(globalThis.__basedir + "/wavebreaker_radio_entries.json", "utf-8"));
+      const WavebreakerRadioConfig = JSON.parse(fs.readFileSync(globalThis.__basedir + "/config/wavebreaker_radio_entries.json", "utf-8"));
       if (WavebreakerRadioConfig.availableSongs.length == 0) return "";
       
       const separator = "-:*x-";
