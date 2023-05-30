@@ -4,6 +4,7 @@ import { prisma } from "../../util/db";
 import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
 import crypto from "crypto";
+import { mbJoinArtists, mbSongSearch } from "../../util/musicbrainz";
 
 const xmlBuilder = new xml2js.Builder();
 
@@ -114,6 +115,10 @@ function constructScoreResponseEntry(
 }
 
 async function getOrCreateSong(title: string, artist: string): Promise<Song> {
+  //Validation
+  if (artist.toLowerCase() == "unknown" || title.toLowerCase() == "unknown")
+    throw new Error("Invalid song title or artist.");
+
   try {
     // eslint-disable-next-line no-var
     var song: Song = await prisma.song.findFirstOrThrow({
@@ -139,6 +144,27 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
   return song;
 }
 
+async function addMusicBrainzInfo(song: Song, length: number) {
+  const mbResults = await mbSongSearch(song.artist, song.title, length);
+  if (mbResults) {
+    await prisma.song.update({
+      where: {
+        id: song.id,
+      },
+      data: {
+        mbid: mbResults[0].id,
+        musicbrainzArtist: mbJoinArtists(mbResults[0]["artist-credit"]),
+        musicbrainzTitle: mbResults[0].title,
+        musicbrainzLength: mbResults[0].length,
+      },
+    });
+  } else {
+    throw new Error(
+      "MusicBrainz search for " + song.artist + " - " + song.title + " failed."
+    );
+  }
+}
+
 export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: FetchSongIdSteamRequest;
@@ -149,13 +175,6 @@ export default async function routes(fastify: FastifyInstance) {
         " - " +
         request.body.song
     );
-
-    //Validation
-    if (
-      request.body.artist.toLowerCase() == "unknown" ||
-      request.body.song.toLowerCase() == "unknown"
-    )
-      return "failed";
 
     const song = await getOrCreateSong(request.body.song, request.body.artist);
 
@@ -222,6 +241,14 @@ export default async function routes(fastify: FastifyInstance) {
     const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
 
     const song = await getOrCreateSong(request.body.song, request.body.artist);
+
+    //TODO: Maybe fire this only if the song hasn't been found on MusicBrainz yet?
+    try {
+      fastify.log.info("Looking up MusicBrainz info for song " + song.id + " with length " + request.body.songlength * 10);
+      addMusicBrainzInfo(song, +request.body.songlength * 10);
+    } catch (e) {
+      fastify.log.error("Failed to look up MusicBrainz info: " + e);
+    }
 
     const prevScore = await prisma.score.findUnique({
       where: {

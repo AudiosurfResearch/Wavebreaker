@@ -1,4 +1,4 @@
-import { IIsrcSearchResult, IRecording, MusicBrainzApi } from "musicbrainz-api";
+import { IArtistCredit, IIsrcSearchResult, IRecording, MusicBrainzApi } from "musicbrainz-api";
 
 export const mbApi = new MusicBrainzApi({
   appName: "Wavebreaker",
@@ -22,4 +22,19 @@ export async function mbSongSearch(
   } else {
     return null;
   }
+}
+
+export function mbJoinArtists(
+  artistCredit: IArtistCredit[],
+): string {
+  // Join every artist with name + joinphrase, if joinphrase is not empty
+  // (joinphrase is empty if it's the last artist in the array)
+  let artistString = "";
+  artistCredit.forEach((artist) => {
+    artistString += artist.name;
+    if (artist.joinphrase) {
+      artistString += artist.joinphrase;
+    }
+  });
+  return artistString;
 }

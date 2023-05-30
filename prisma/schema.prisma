@@ -36,6 +36,7 @@ model Song {
   mbid              String?  
   musicbrainzTitle  String?
   musicbrainzArtist String?
+  musicbrainzLength Int?
   coverUrl          String?
   scores            Score[]
   shouts            Shout[]
