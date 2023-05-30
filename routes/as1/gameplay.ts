@@ -258,7 +258,7 @@ export default async function routes(fastify: FastifyInstance) {
             " with length " +
             request.body.songlength * 10
         );
-        addMusicBrainzInfo(song, +request.body.songlength * 10);
+        await addMusicBrainzInfo(song, +request.body.songlength * 10);
       }
     } catch (e) {
       fastify.log.error("Failed to look up MusicBrainz info: " + e);
