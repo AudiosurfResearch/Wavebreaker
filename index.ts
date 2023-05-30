@@ -23,6 +23,7 @@ import fs from "fs";
 import path from "path";
 import WavebreakerConfig from "./config/wavebreaker_config.json";
 import { Prisma } from "@prisma/client";
+import { mbSongSearch } from "./util/musicbrainz";
 
 globalThis.__basedir = __dirname; //Set global variable for the base directory
 

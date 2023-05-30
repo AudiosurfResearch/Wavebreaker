@@ -7,6 +7,7 @@ public/dist/
 cert.pem
 key.pem
 *.js
+.yarn
 
 # Database stuff
 *.db
