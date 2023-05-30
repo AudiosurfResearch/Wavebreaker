@@ -147,6 +147,13 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
 async function addMusicBrainzInfo(song: Song, length: number) {
   const mbResults = await mbSongSearch(song.artist, song.title, length);
   if (mbResults) {
+    const coverLookupResponse = await fetch(
+      `https://coverartarchive.org/release/${mbResults[0].releases[0].id}/front-500.jpg`,
+      {
+        method: "GET",
+      }
+    );
+
     await prisma.song.update({
       where: {
         id: song.id,
@@ -156,6 +163,7 @@ async function addMusicBrainzInfo(song: Song, length: number) {
         musicbrainzArtist: mbJoinArtists(mbResults[0]["artist-credit"]),
         musicbrainzTitle: mbResults[0].title,
         musicbrainzLength: mbResults[0].length,
+        ...(coverLookupResponse.ok && { coverUrl: coverLookupResponse.url }),
       },
     });
   } else {
