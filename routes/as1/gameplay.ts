@@ -242,10 +242,16 @@ export default async function routes(fastify: FastifyInstance) {
 
     const song = await getOrCreateSong(request.body.song, request.body.artist);
 
-    //TODO: Maybe fire this only if the song hasn't been found on MusicBrainz yet?
     try {
-      fastify.log.info("Looking up MusicBrainz info for song " + song.id + " with length " + request.body.songlength * 10);
-      addMusicBrainzInfo(song, +request.body.songlength * 10);
+      if (!song.mbid) {
+        fastify.log.info(
+          "Looking up MusicBrainz info for song " +
+            song.id +
+            " with length " +
+            request.body.songlength * 10
+        );
+        addMusicBrainzInfo(song, +request.body.songlength * 10);
+      }
     } catch (e) {
       fastify.log.error("Failed to look up MusicBrainz info: " + e);
     }
