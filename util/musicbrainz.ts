@@ -13,8 +13,8 @@ export async function mbSongSearch(
 ): Promise<IRecording[] | null> {
   const search = await mbApi.search<IIsrcSearchResult>("recording", {
     query: `recording:${title} AND artist:${artist} AND dur:[${
-      length - 3000
-    } TO ${length + 3000}]`,
+      length - 6000
+    } TO ${length + 6000}]`,
   });
 
   if (search.recordings.length > 0) {
