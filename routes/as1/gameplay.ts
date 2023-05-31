@@ -119,21 +119,45 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
   if (artist.toLowerCase() == "unknown" || title.toLowerCase() == "unknown")
     throw new Error("Invalid song title or artist.");
 
-  try {
-    // eslint-disable-next-line no-var
-    var song: Song = await prisma.song.findFirstOrThrow({
-      where: {
-        title: {
-          equals: title,
-          mode: "insensitive",
+  let song: Song = await prisma.song.findFirst({
+    where: {
+      AND: [
+        {
+          OR: [
+            {
+              title: {
+                equals: title,
+                mode: "insensitive",
+              },
+            },
+            {
+              musicbrainzTitle: {
+                equals: title,
+                mode: "insensitive",
+              },
+            },
+          ],
         },
-        artist: {
-          equals: artist,
-          mode: "insensitive",
+        {
+          OR: [
+            {
+              artist: {
+                equals: artist,
+                mode: "insensitive",
+              },
+            },
+            {
+              musicbrainzArtist: {
+                equals: artist,
+                mode: "insensitive",
+              },
+            },
+          ],
         },
-      },
-    });
-  } catch (e) {
+      ],
+    },
+  });
+  if (!song) {
     song = await prisma.song.create({
       data: {
         title: title,
@@ -141,6 +165,7 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
       },
     });
   }
+
   return song;
 }
 
