@@ -33,11 +33,12 @@ model Song {
   id                Int     @id @default(autoincrement())
   title             String
   artist            String
-  mbid              String?  
+  mbid              String?
   musicbrainzTitle  String?
   musicbrainzArtist String?
   musicbrainzLength Int?
   coverUrl          String?
+  smallCoverUrl     String?
   scores            Score[]
   shouts            Shout[]
 }

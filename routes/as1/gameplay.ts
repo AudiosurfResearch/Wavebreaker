@@ -189,6 +189,13 @@ async function addMusicBrainzInfo(song: Song, length: number) {
         musicbrainzTitle: mbResults[0].title,
         musicbrainzLength: mbResults[0].length,
         ...(coverLookupResponse.ok && { coverUrl: coverLookupResponse.url }),
+        //weird-ish solution but this means i don't have to do two requests to Cover Art Archive
+        ...(coverLookupResponse.ok && {
+          smallCoverUrl: coverLookupResponse.url.replace(
+            "_thumb500.jpg",
+            "_thumb.jpg"
+          ),
+        }),
       },
     });
   } else {
