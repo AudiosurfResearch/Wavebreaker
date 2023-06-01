@@ -79,7 +79,7 @@ export default async function routes(fastify: FastifyInstance) {
 
       return {
         scores: scores,
-        resultCount: count,
+        totalCount: count,
       };
     }
   );
