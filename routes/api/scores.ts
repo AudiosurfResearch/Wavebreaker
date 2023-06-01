@@ -16,6 +16,7 @@ const getScoresQuerySchema = Type.Object(
       })
     ),
     includePlayer: Type.Optional(Type.Boolean({ default: false })),
+    includeSong: Type.Optional(Type.Boolean({ default: true })),
     page: Type.Number({ default: 1, minimum: 1 }),
     pageSize: Type.Number({ default: 10, minimum: 1, maximum: 100 }),
   },
@@ -31,61 +32,54 @@ export default async function routes(fastify: FastifyInstance) {
     async (request) => {
       fastify.log.info(request.query);
 
-      const scoreCount = await prisma.score.count({
-        where: {
-          ...(request.query.songId && {
-            songId: request.query.songId,
-          }),
-          ...(request.query.userId && {
-            userId: request.query.userId,
-          }),
-          ...(request.query.leagueId && {
-            leagueId: request.query.leagueId,
-          }),
-          ...(request.query.vehicleId && {
-            vehicleId: request.query.vehicleId,
-          }),
-        },
-      });
+      const where = {
+        ...(request.query.songId && {
+          songId: request.query.songId,
+        }),
+        ...(request.query.userId && {
+          userId: request.query.userId,
+        }),
+        ...(request.query.leagueId && {
+          leagueId: request.query.leagueId,
+        }),
+        ...(request.query.vehicleId && {
+          vehicleId: request.query.vehicleId,
+        }),
+      };
 
       //God.
-      const scores = await prisma.score.findMany({
-        skip: (request.query.page - 1) * request.query.pageSize,
-        take: request.query.pageSize,
-        where: {
-          ...(request.query.songId && {
-            songId: request.query.songId,
-          }),
-          ...(request.query.userId && {
-            userId: request.query.userId,
-          }),
-          ...(request.query.leagueId && {
-            leagueId: request.query.leagueId,
-          }),
-          ...(request.query.vehicleId && {
-            vehicleId: request.query.vehicleId,
-          }),
-        },
-        orderBy: {
-          //TODO: Figure out how to make these two mutually exclusive in the schema.
-          ...(!request.query.scoreSort && request.query.timeSort && {
-            rideTime: request.query.timeSort,
-          }),
-          ...(request.query.scoreSort && {
-            score: request.query.scoreSort,
-          }),
-        },
-        include: {
-          song: true,
-          ...(request.query.includePlayer && {
-            player: true,
-          }),
-        },
-      });
+      const [count, scores] = await prisma.$transaction([
+        prisma.score.count({
+          where,
+        }),
+        prisma.score.findMany({
+          skip: (request.query.page - 1) * request.query.pageSize,
+          take: request.query.pageSize,
+          where,
+          orderBy: {
+            //TODO: Figure out how to make these two mutually exclusive in the schema.
+            ...(!request.query.scoreSort &&
+              request.query.timeSort && {
+                rideTime: request.query.timeSort,
+              }),
+            ...(request.query.scoreSort && {
+              score: request.query.scoreSort,
+            }),
+          },
+          include: {
+            ...(request.query.includeSong && {
+              song: true,
+            }),
+            ...(request.query.includePlayer && {
+              player: true,
+            }),
+          },
+        })
+      ]);
 
       return {
         scores: scores,
-        resultCount: scoreCount,
+        resultCount: count,
       };
     }
   );
