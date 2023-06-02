@@ -47,7 +47,6 @@ export default async function routes(fastify: FastifyInstance) {
         }),
       };
 
-      //God.
       const [count, scores] = await prisma.$transaction([
         prisma.score.count({
           where,
@@ -74,7 +73,7 @@ export default async function routes(fastify: FastifyInstance) {
               player: true,
             }),
           },
-        })
+        }),
       ]);
 
       return {

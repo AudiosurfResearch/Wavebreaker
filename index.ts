@@ -1,9 +1,10 @@
 //Fastify and plugins
-import Fastify from "fastify";
+import Fastify, { FastifyInstance } from "fastify";
 import formbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import httpsRedirect from "fastify-https-redirect";
 import authPlugin from "./util/authPlugin";
+import cors from "@fastify/cors";
 
 //Game routes
 import accountsRouter from "./routes/as1/accounts";
@@ -76,6 +77,14 @@ fastify.register(fastifyStatic, {
   root: path.join(__dirname, "RadioSongs"),
   prefix: "/as/asradio/",
 });
+fastify.register(cors, {
+  origin: WavebreakerConfig.corsOrigin,
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 204,
+});
 
 fastify.setErrorHandler(function (error, request, reply) {
   // Log error
@@ -85,7 +94,7 @@ fastify.setErrorHandler(function (error, request, reply) {
     error.code === "P2025"
   ) {
     // Prisma: not found
-    reply.status(404).send({ error: "Not found"});
+    reply.status(404).send({ error: "Not found" });
   }
   reply.status(500).send({ error: "An error has occurred." });
 });

@@ -84,7 +84,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fastify/cors@npm:^8.2.1":
+"@fastify/cors@npm:^8.3.0":
   version: 8.3.0
   resolution: "@fastify/cors@npm:8.3.0"
   dependencies:
@@ -169,13 +169,13 @@ __metadata:
   linkType: hard
 
 "@humanwhocodes/config-array@npm:^0.11.8":
-  version: 0.11.8
-  resolution: "@humanwhocodes/config-array@npm:0.11.8"
+  version: 0.11.10
+  resolution: "@humanwhocodes/config-array@npm:0.11.10"
   dependencies:
     "@humanwhocodes/object-schema": ^1.2.1
     debug: ^4.1.1
     minimatch: ^3.0.5
-  checksum: 0fd6b3c54f1674ce0a224df09b9c2f9846d20b9e54fabae1281ecfc04f2e6ad69bf19e1d6af6a28f88e8aa3990168b6cb9e1ef755868c3256a630605ec2cb1d3
+  checksum: 1b1302e2403d0e35bc43e66d67a2b36b0ad1119efc704b5faff68c41f791a052355b010fb2d27ef022670f550de24cd6d08d5ecf0821c16326b7dcd0ee5d5d8a
   languageName: node
   linkType: hard
 
@@ -252,30 +252,30 @@ __metadata:
   linkType: hard
 
 "@prisma/client@npm:^4.14.1":
-  version: 4.14.1
-  resolution: "@prisma/client@npm:4.14.1"
+  version: 4.15.0
+  resolution: "@prisma/client@npm:4.15.0"
   dependencies:
-    "@prisma/engines-version": 4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c
+    "@prisma/engines-version": 4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944
   peerDependencies:
     prisma: "*"
   peerDependenciesMeta:
     prisma:
       optional: true
-  checksum: 24d0696cfb714f50ef95eab87f260c06402b255eff529d3fbd6ae0752a42df8f63b18f5268d9b2c47261a7316299b16b6fc4079b725750eb951b4dde5ddb1d16
+  checksum: 875eb31e702e16a50188f4762d9689a930aeb4f18a158a0a5270feefc80dc9a30935890df65d98fc9c6655d5f4f65d9943997bb86a51dd904577e7d19c6a2a7c
   languageName: node
   linkType: hard
 
-"@prisma/engines-version@npm:4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c":
-  version: 4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c
-  resolution: "@prisma/engines-version@npm:4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c"
-  checksum: 0df2c9e7434ced708a202cb572e5cf433aae55332819700edb394b7d9c29742a6d2fd65abb778e80f9b1cc1f90daae5e331f4acd070bed395982856ff5ceccee
+"@prisma/engines-version@npm:4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944":
+  version: 4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944
+  resolution: "@prisma/engines-version@npm:4.15.0-28.8fbc245156db7124f997f4cecdd8d1219e360944"
+  checksum: 6da6f076746aac2db043a9f15790f51c6d0e86139e1ebd83e6e046e799c0dbfa0d2df14cd7c70cc9583ce85b4bfc02e48fe1461077b79ed31ba83ad9440bb90f
   languageName: node
   linkType: hard
 
-"@prisma/engines@npm:4.14.1":
-  version: 4.14.1
-  resolution: "@prisma/engines@npm:4.14.1"
-  checksum: 9c6af9b98303b408b667b69653fd7b2eaa2c28775cf4c2559c51e3dfa161b4104deb41222d3b2fc33fd28ab255a633a9a9c0234d2d5b2b031f9fc1e715befc83
+"@prisma/engines@npm:4.15.0":
+  version: 4.15.0
+  resolution: "@prisma/engines@npm:4.15.0"
+  checksum: 61b53fe5ad7b0927de9aa4f51027e281788258d3fb5e389c3ae940829fdc5428a7108ce0cae5b329ddac0ee3206b0b9f8e8adae401c456f77d912c96368cfa5f
   languageName: node
   linkType: hard
 
@@ -2370,14 +2370,14 @@ __metadata:
   linkType: hard
 
 "prisma@npm:^4.14.1":
-  version: 4.14.1
-  resolution: "prisma@npm:4.14.1"
+  version: 4.15.0
+  resolution: "prisma@npm:4.15.0"
   dependencies:
-    "@prisma/engines": 4.14.1
+    "@prisma/engines": 4.15.0
   bin:
     prisma: build/index.js
     prisma2: build/index.js
-  checksum: 2cb0085652b541aa4c855f1434083b6fc0f3df5be28a0558fe2e1b120546b95d114177f86641fa9e21e13fb3a27a48e8cfd240d683a9e8e872b72e2c8c61a7e2
+  checksum: a42b940396f5f101d44effad9bfccca4b062ae80a369dc44961cbc074326239340f05c5af49981b1cddb08d9155c4bcc93c4d69ed2ae4a634e1742159204cb89
   languageName: node
   linkType: hard
 
@@ -2913,22 +2913,22 @@ __metadata:
   linkType: hard
 
 "typescript@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "typescript@npm:5.0.4"
+  version: 5.1.3
+  resolution: "typescript@npm:5.1.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 82b94da3f4604a8946da585f7d6c3025fff8410779e5bde2855ab130d05e4fd08938b9e593b6ebed165bda6ad9292b230984f10952cf82f0a0ca07bbeaa08172
+  checksum: d9d51862d98efa46534f2800a1071a613751b1585dc78884807d0c179bcd93d6e9d4012a508e276742f5f33c480adefc52ffcafaf9e0e00ab641a14cde9a31c7
   languageName: node
   linkType: hard
 
 "typescript@patch:typescript@^5.0.4#~builtin<compat/typescript>":
-  version: 5.0.4
-  resolution: "typescript@patch:typescript@npm%3A5.0.4#~builtin<compat/typescript>::version=5.0.4&hash=b5f058"
+  version: 5.1.3
+  resolution: "typescript@patch:typescript@npm%3A5.1.3#~builtin<compat/typescript>::version=5.1.3&hash=77c9e2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: d26b6ba97b6d163c55dbdffd9bbb4c211667ebebc743accfeb2c8c0154aace7afd097b51165a72a5bad2cf65a4612259344ff60f8e642362aa1695c760d303ac
+  checksum: 32a25b2e128a4616f999d4ee502aabb1525d5647bc8955e6edf05d7fbc53af8aa98252e2f6ba80bcedfc0260c982b885f3c09cfac8bb65d2924f3133ad1e1e62
   languageName: node
   linkType: hard
 
@@ -2986,7 +2986,7 @@ __metadata:
   resolution: "wavebreaker@workspace:."
   dependencies:
     "@fastify/cookie": ^8.3.0
-    "@fastify/cors": ^8.2.1
+    "@fastify/cors": ^8.3.0
     "@fastify/formbody": ^7.0.1
     "@fastify/jwt": ^6.7.1
     "@fastify/static": ^6.10.1
