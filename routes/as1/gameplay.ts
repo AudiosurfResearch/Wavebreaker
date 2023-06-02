@@ -293,7 +293,7 @@ export default async function routes(fastify: FastifyInstance) {
         await addMusicBrainzInfo(song, +request.body.songlength * 10);
       }
     } catch (e) {
-      fastify.log.error("Failed to look up MusicBrainz info: " + e);
+      fastify.log.error("Failed to look up MusicBrainz info: " + e + "\n" + e.stack);
     }
 
     const prevScore = await prisma.score.findUnique({

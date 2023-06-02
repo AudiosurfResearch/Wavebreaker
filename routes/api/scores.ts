@@ -2,7 +2,6 @@ import { FastifyInstance } from "fastify";
 import { prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
 import { StringEnum } from "../../util/schemaTypes";
-import { error } from "console";
 
 const getScoresQuerySchema = Type.Object(
   {
