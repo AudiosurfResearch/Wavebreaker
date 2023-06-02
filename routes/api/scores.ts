@@ -2,12 +2,13 @@ import { FastifyInstance } from "fastify";
 import { prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
 import { StringEnum } from "../../util/schemaTypes";
+import { error } from "console";
 
 const getScoresQuerySchema = Type.Object(
   {
     songId: Type.Optional(Type.Number()),
     userId: Type.Optional(Type.Number()),
-    leagueId: Type.Optional(Type.Number()),
+    leagueId: Type.Optional(Type.Number({ minimum: 0, maximum: 2 })),
     vehicleId: Type.Optional(Type.Number()),
     scoreSort: Type.Optional(StringEnum(["asc", "desc"])),
     timeSort: Type.Optional(
@@ -29,7 +30,7 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: GetScoresQuery }>(
     "/api/scores/getScores",
     { schema: { querystring: getScoresQuerySchema } },
-    async (request) => {
+    async (request, reply) => {
       fastify.log.info(request.query);
 
       const where = {
@@ -39,7 +40,7 @@ export default async function routes(fastify: FastifyInstance) {
         ...(request.query.userId && {
           userId: request.query.userId,
         }),
-        ...(request.query.leagueId && {
+        ...(request.query.leagueId > -1 && {
           leagueId: request.query.leagueId,
         }),
         ...(request.query.vehicleId && {
@@ -76,10 +77,14 @@ export default async function routes(fastify: FastifyInstance) {
         }),
       ]);
 
-      return {
-        scores: scores,
-        totalCount: count,
-      };
+      if (count === 0) {
+        reply.status(404).send({ error: "No scores found" });
+      } else {
+        return {
+          scores: scores,
+          totalCount: count,
+        };
+      }
     }
   );
 }

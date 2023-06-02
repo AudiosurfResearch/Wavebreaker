@@ -1,5 +1,5 @@
 //Fastify and plugins
-import Fastify, { FastifyInstance } from "fastify";
+import Fastify from "fastify";
 import formbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import httpsRedirect from "fastify-https-redirect";
