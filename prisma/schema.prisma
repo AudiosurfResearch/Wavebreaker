@@ -3,11 +3,13 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
 }
 
 datasource db {
   provider = "postgres"
   url      = env("DATABASE_URL")
+  extensions = [pg_trgm]
 }
 
 model User {
