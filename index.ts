@@ -96,6 +96,12 @@ fastify.setErrorHandler(function (error, request, reply) {
     // Prisma: not found
     reply.status(404).send({ error: "Not found" });
   }
+
+  if (error.code === "FST_ERR_VALIDATION") {
+    // Fastify validation error
+    reply.status(400).send({ error: "Request validation failed." });
+  }
+
   reply.status(500).send({ error: "An error has occurred." });
 });
 

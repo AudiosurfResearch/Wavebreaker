@@ -3,18 +3,79 @@ import { Prisma, Song, User } from "@prisma/client";
 import { prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
 
-const getUserQuerySchema = Type.Object({
-  id: Type.Number(),
-  getExtendedInfo: Type.Optional(Type.Boolean({ default: false })),
-});
+const getUserQuerySchema = Type.Object(
+  {
+    id: Type.Number(),
+    getExtendedInfo: Type.Optional(Type.Boolean({ default: false })),
+  },
+  { additionalProperties: false }
+);
+
+const searchUserQuerySchema = Type.Object(
+  {
+    query: Type.String(),
+  },
+  { additionalProperties: false }
+);
 
 type GetUserQuery = Static<typeof getUserQuerySchema>;
+type SearchUserQuery = Static<typeof searchUserQuerySchema>;
 
 interface ExtendedUser extends User {
   totalScore: number;
   totalPlays: number;
   favoriteCharacter?: number;
   favoriteSong?: Song;
+}
+
+async function getExtendedInfo(userBase: User): Promise<User> {
+  //Get user's total score and total plays
+  const scoreAggregation = await prisma.score.aggregate({
+    where: {
+      userId: userBase.id,
+    },
+    _sum: {
+      score: true,
+      playCount: true,
+    },
+  });
+
+  const user: ExtendedUser = userBase as ExtendedUser;
+  user.totalScore = scoreAggregation._sum.score ?? 0;
+  user.totalPlays = scoreAggregation._sum.playCount ?? 0;
+
+  //Get user's favorite song (or, rather, song of the score with the most plays)
+  const favSongScore = await prisma.score.findFirst({
+    where: {
+      userId: userBase.id,
+    },
+    orderBy: {
+      playCount: "desc",
+    },
+    include: {
+      song: true,
+    },
+  });
+  user.favoriteSong = favSongScore?.song;
+
+  //Get user's most used character
+  const charGroup = await prisma.score.groupBy({
+    by: ["vehicleId"],
+    where: {
+      userId: userBase.id,
+    },
+    _sum: {
+      playCount: true,
+    },
+    orderBy: {
+      _sum: {
+        playCount: "desc",
+      },
+    },
+  });
+
+  if (charGroup[0]) user.favoriteCharacter = charGroup[0].vehicleId;
+  return user;
 }
 
 export default async function routes(fastify: FastifyInstance) {
@@ -31,54 +92,7 @@ export default async function routes(fastify: FastifyInstance) {
         });
 
         if (request.query.getExtendedInfo) {
-          //Get user's total score and total plays
-          const scoreAggregation = await prisma.score.aggregate({
-            where: {
-              userId: id,
-            },
-            _sum: {
-              score: true,
-              playCount: true,
-            },
-          });
-
-          const user: ExtendedUser = userBase as ExtendedUser;
-          user.totalScore = scoreAggregation._sum.score ?? 0;
-          user.totalPlays = scoreAggregation._sum.playCount ?? 0;
-
-          //Get user's favorite song (or, rather, song of the score with the most plays)
-          const favSongScore = await prisma.score.findFirst({
-            where: {
-              userId: id,
-            },
-            orderBy: {
-              playCount: "desc",
-            },
-            include: {
-              song: true,
-            },
-          });
-          user.favoriteSong = favSongScore?.song;
-
-          //Get user's most used character
-          const charGroup = await prisma.score.groupBy({
-            by: ["vehicleId"],
-            where: {
-              userId: id,
-            },
-            _sum: {
-              playCount: true,
-            },
-            orderBy: {
-              _sum: {
-                playCount: "desc",
-              },
-            },
-          });
-
-          if (charGroup[0]) user.favoriteCharacter = charGroup[0].vehicleId;
-
-          return user;
+          return await getExtendedInfo(userBase);
         }
 
         return userBase;
@@ -89,6 +103,17 @@ export default async function routes(fastify: FastifyInstance) {
         )
           reply.status(404).send({ error: "User not found" });
       }
+    }
+  );
+
+  fastify.get<{ Querystring: SearchUserQuery }>(
+    "/api/users/searchUsers",
+    { schema: { querystring: searchUserQuerySchema } },
+    async (request) => {
+      const results = await prisma.$queryRaw<
+        User[]
+      >`SELECT * FROM "User" ORDER BY similarity(username, ${request.query.query}) DESC LIMIT 5;`;
+      return { results };
     }
   );
 }
