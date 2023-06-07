@@ -4,7 +4,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 const getSongQuerySchema = Type.Object(
   {
-    id: Type.Optional(Type.Number()),
+    id: Type.Number(),
     includeShouts: Type.Optional(Type.Boolean({ default: false })),
   },
   { additionalProperties: false }
@@ -17,7 +17,7 @@ export default async function routes(fastify: FastifyInstance) {
     "/api/songs/getSong",
     { schema: { querystring: getSongQuerySchema } },
     async (request) => {
-      const song = await prisma.song.findFirstOrThrow({
+      const song = await prisma.song.findUniqueOrThrow({
         where: {
           id: request.query.id,
         },
