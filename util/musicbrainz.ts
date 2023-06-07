@@ -1,4 +1,11 @@
-import { IArtistCredit, IIsrcSearchResult, IRecording, MusicBrainzApi } from "musicbrainz-api";
+import { Song } from "@prisma/client";
+import {
+  IArtistCredit,
+  IIsrcSearchResult,
+  IRecording,
+  MusicBrainzApi,
+} from "musicbrainz-api";
+import { prisma } from "./db";
 
 export const mbApi = new MusicBrainzApi({
   appName: "Wavebreaker",
@@ -24,9 +31,7 @@ export async function mbSongSearch(
   }
 }
 
-export function mbJoinArtists(
-  artistCredit: IArtistCredit[],
-): string {
+export function mbJoinArtists(artistCredit: IArtistCredit[]): string {
   // Join every artist with name + joinphrase, if joinphrase is not empty
   // (joinphrase is empty if it's the last artist in the array)
   let artistString = "";
@@ -37,4 +42,49 @@ export function mbJoinArtists(
     }
   });
   return artistString;
+}
+
+export async function addMusicBrainzInfo(song: Song, length: number) {
+  const mbResults = await mbSongSearch(song.artist, song.title, length);
+  if (mbResults) {
+    let coverUrl: string = null;
+    for (const release of mbResults[0].releases) {
+      const fullRelease = await mbApi.lookupRelease(release.id);
+
+      if (fullRelease["cover-art-archive"].front) {
+        await fetch(
+          `https://coverartarchive.org/release/${release.id}/front-500.jpg`
+        ).then((response) => {
+          if (response.ok) {
+            coverUrl = response.url;
+          }
+        });
+      }
+    }
+
+    await prisma.song.update({
+      where: {
+        id: song.id,
+      },
+      data: {
+        mbid: mbResults[0].id,
+        musicbrainzArtist: mbJoinArtists(mbResults[0]["artist-credit"]),
+        musicbrainzTitle: mbResults[0].title,
+        musicbrainzLength: mbResults[0].length,
+        ...(coverUrl && { coverUrl: coverUrl }),
+        //weird-ish solution but this means i don't have to do two requests to Cover Art Archive
+        ...(coverUrl && {
+          smallCoverUrl: coverUrl.replace("_thumb500.jpg", "_thumb.jpg"),
+        }),
+      },
+    });
+
+    console.log(
+      `Found matching MusicBrainz info for ${song.artist} - ${song.title}`
+    );
+  } else {
+    throw new Error(
+      `MusicBrainz search for ${song.artist} - ${song.title} failed.`
+    );
+  }
 }

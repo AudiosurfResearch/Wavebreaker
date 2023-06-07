@@ -4,7 +4,7 @@ import { prisma } from "../../util/db";
 import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
 import crypto from "crypto";
-import { mbJoinArtists, mbSongSearch } from "../../util/musicbrainz";
+import { addMusicBrainzInfo } from "../../util/musicbrainz";
 
 const xmlBuilder = new xml2js.Builder();
 
@@ -169,42 +169,6 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
   return song;
 }
 
-async function addMusicBrainzInfo(song: Song, length: number) {
-  const mbResults = await mbSongSearch(song.artist, song.title, length);
-  if (mbResults) {
-    const coverLookupResponse = await fetch(
-      `https://coverartarchive.org/release/${mbResults[0].releases[0].id}/front-500.jpg`,
-      {
-        method: "GET",
-      }
-    );
-
-    await prisma.song.update({
-      where: {
-        id: song.id,
-      },
-      data: {
-        mbid: mbResults[0].id,
-        musicbrainzArtist: mbJoinArtists(mbResults[0]["artist-credit"]),
-        musicbrainzTitle: mbResults[0].title,
-        musicbrainzLength: mbResults[0].length,
-        ...(coverLookupResponse.ok && { coverUrl: coverLookupResponse.url }),
-        //weird-ish solution but this means i don't have to do two requests to Cover Art Archive
-        ...(coverLookupResponse.ok && {
-          smallCoverUrl: coverLookupResponse.url.replace(
-            "_thumb500.jpg",
-            "_thumb.jpg"
-          ),
-        }),
-      },
-    });
-  } else {
-    throw new Error(
-      "MusicBrainz search for " + song.artist + " - " + song.title + " failed."
-    );
-  }
-}
-
 export default async function routes(fastify: FastifyInstance) {
   fastify.post<{
     Body: FetchSongIdSteamRequest;
@@ -268,12 +232,7 @@ export default async function routes(fastify: FastifyInstance) {
       .digest("hex");
     if (submissionHash != request.body.submitcode) {
       fastify.log.error(
-        "Invalid submit code: " +
-          submissionCodePlaintext +
-          " - " +
-          submissionHash +
-          " - " +
-          request.body.submitcode
+        `Invalid submit code: ${submissionCodePlaintext} - ${submissionHash} - ${request.body.submitcode}`
       );
       throw new Error("Invalid submit code.");
     }
@@ -285,15 +244,14 @@ export default async function routes(fastify: FastifyInstance) {
     try {
       if (!song.mbid) {
         fastify.log.info(
-          "Looking up MusicBrainz info for song " +
-            song.id +
-            " with length " +
+          `Looking up MusicBrainz info for song ${song.id} with length ${
             request.body.songlength * 10
+          }`
         );
         await addMusicBrainzInfo(song, +request.body.songlength * 10);
       }
     } catch (e) {
-      fastify.log.error("Failed to look up MusicBrainz info: " + e + "\n" + e.stack);
+      fastify.log.error(`Failed to look up MusicBrainz info: ${e}\n${e.stack}`);
     }
 
     const prevScore = await prisma.score.findUnique({
