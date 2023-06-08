@@ -129,6 +129,6 @@ export async function tagByMBID(songId: number, recordingMBID: string) {
       },
     });
   } else {
-    throw new Error(`Couldn't find recording with MBID ${recordingMBID}.`);
+    throw new Error(`Failed to retag ${songId} as ${recordingMBID}.`);
   }
 }
