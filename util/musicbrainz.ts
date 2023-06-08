@@ -65,6 +65,7 @@ export async function addMusicBrainzInfo(song: Song, length: number) {
           }
         });
       }
+      if (coverUrl) break;
     }
 
     await prisma.song.update({
@@ -95,14 +96,17 @@ export async function addMusicBrainzInfo(song: Song, length: number) {
 }
 
 export async function tagByMBID(songId: number, recordingMBID: string) {
-  const mbRecording = await mbApi.lookupRecording(recordingMBID, ["releases", "artist-credits"]);
+  const mbRecording = await mbApi.lookupRecording(recordingMBID, [
+    "releases",
+    "artist-credits",
+  ]);
   if (mbRecording) {
     let coverUrl: string = null;
     for (const release of mbRecording.releases) {
       const fullRelease = await mbApi.lookupRelease(release.id);
 
       if (fullRelease["cover-art-archive"].front) {
-        await fetch(
+        fetch(
           `https://coverartarchive.org/release/${fullRelease.id}/front-500.jpg`
         ).then((response) => {
           if (response.ok) {
