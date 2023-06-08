@@ -2,13 +2,13 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
 }
 
 datasource db {
-  provider = "postgres"
-  url      = env("DATABASE_URL")
+  provider   = "postgres"
+  url        = env("DATABASE_URL")
   extensions = [pg_trgm]
 }
 
@@ -39,6 +39,7 @@ model Song {
   musicbrainzTitle  String?
   musicbrainzArtist String?
   musicbrainzLength Int?
+  mistagLock        Boolean @default(false)
   coverUrl          String?
   smallCoverUrl     String?
   scores            Score[]
