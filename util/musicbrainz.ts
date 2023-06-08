@@ -95,15 +95,15 @@ export async function addMusicBrainzInfo(song: Song, length: number) {
 }
 
 export async function tagByMBID(songId: number, recordingMBID: string) {
-  const mbRecording = await mbApi.lookupRecording(recordingMBID);
+  const mbRecording = await mbApi.lookupRecording(recordingMBID, ["releases", "artist-credits"]);
   if (mbRecording) {
     let coverUrl: string = null;
-    for (const release of mbRecording[0].releases) {
+    for (const release of mbRecording.releases) {
       const fullRelease = await mbApi.lookupRelease(release.id);
 
       if (fullRelease["cover-art-archive"].front) {
         await fetch(
-          `https://coverartarchive.org/release/${release.id}/front-500.jpg`
+          `https://coverartarchive.org/release/${fullRelease.id}/front-500.jpg`
         ).then((response) => {
           if (response.ok) {
             coverUrl = response.url;
@@ -117,10 +117,10 @@ export async function tagByMBID(songId: number, recordingMBID: string) {
         id: songId,
       },
       data: {
-        mbid: mbRecording[0].id,
-        musicbrainzArtist: mbJoinArtists(mbRecording[0]["artist-credit"]),
-        musicbrainzTitle: mbRecording[0].title,
-        musicbrainzLength: mbRecording[0].length,
+        mbid: mbRecording.id,
+        musicbrainzArtist: mbJoinArtists(mbRecording["artist-credit"]),
+        musicbrainzTitle: mbRecording.title,
+        musicbrainzLength: mbRecording.length,
         ...(coverUrl && { coverUrl: coverUrl }),
         //weird-ish solution but this means i don't have to do two requests to Cover Art Archive
         ...(coverUrl && {
