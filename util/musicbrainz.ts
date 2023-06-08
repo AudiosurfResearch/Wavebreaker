@@ -106,13 +106,17 @@ export async function tagByMBID(songId: number, recordingMBID: string) {
       const fullRelease = await mbApi.lookupRelease(release.id);
 
       if (fullRelease["cover-art-archive"].front) {
-        fetch(
-          `https://coverartarchive.org/release/${fullRelease.id}/front-500.jpg`
+        await fetch(
+          `https://coverartarchive.org/release/${release.id}/front-500.jpg`
         ).then((response) => {
           if (response.ok) {
             coverUrl = response.url;
           }
         });
+      }
+      if (coverUrl) {
+        console.log("Cover URL found");
+        break;
       }
     }
 
