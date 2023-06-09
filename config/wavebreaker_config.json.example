@@ -13,5 +13,7 @@
         "realm": "http://wavebreakerdev.local",
         "returnUrl": "http://wavebreakerdev.local/login/steamreturn"
     },
-    "token_secret": "yuruyaka_ni_kuzure_kowareteku"
+    "token_secret": "yuruyaka_ni_kuzure_kowareteku",
+    "corsOrigin": "http://wavebreakerdev.local",
+    "webhook_link": "https://discordapp.com/api/webhooks/your_webhook_link_here"
 }

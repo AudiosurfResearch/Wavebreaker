@@ -47,6 +47,7 @@
     "@fastify/static": "^6.10.1",
     "@prisma/client": "^4.14.1",
     "@sinclair/typebox": "^0.28.13",
+    "discord.js": "^14.11.0",
     "fastify": "^4.3.0",
     "fastify-https-redirect": "^1.0.4",
     "musicbrainz-api": "^0.10.3",
