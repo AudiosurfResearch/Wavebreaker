@@ -13,7 +13,6 @@ export function sendMetadataReport(
 ) {
   const embed = new EmbedBuilder()
     .setTitle(`Metadata report for song ${song.id} received`)
-    .setURL("")
     .setColor(0xffc777)
     .addFields([
       {
