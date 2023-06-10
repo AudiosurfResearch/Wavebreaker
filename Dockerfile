@@ -19,7 +19,7 @@ RUN npx prisma generate
 # Bundle app source
 COPY . .
 
-RUN npm run build
+# RUN npm run build
 
 EXPOSE 5000
 CMD [ "npm", "start" ]
