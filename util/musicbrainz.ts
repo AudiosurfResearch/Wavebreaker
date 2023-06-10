@@ -125,6 +125,7 @@ export async function tagByMBID(songId: number, recordingMBID: string) {
         id: songId,
       },
       data: {
+        mistagLock: false,
         mbid: mbRecording.id,
         musicbrainzArtist: mbJoinArtists(mbRecording["artist-credit"]),
         musicbrainzTitle: mbRecording.title,
