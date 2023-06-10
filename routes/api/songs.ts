@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
 import { sendMetadataReport } from "../../util/discord";
+import { tagByMBID } from "../../util/musicbrainz";
 
 const getSongQuerySchema = Type.Object(
   {
@@ -19,8 +20,25 @@ const reportMetadataSchema = Type.Object(
   { additionalProperties: false }
 );
 
+const applyMBIDSchema = Type.Object(
+  {
+    id: Type.Number(),
+    mbid: Type.String(),
+  },
+  { additionalProperties: false }
+);
+
+const markMistagSchema = Type.Object(
+  {
+    id: Type.Number(),
+  },
+  { additionalProperties: false }
+);
+
 type GetSongQuery = Static<typeof getSongQuerySchema>;
 type ReportMetadataBody = Static<typeof reportMetadataSchema>;
+type ApplyMBIDBody = Static<typeof applyMBIDSchema>;
+type MarkMistagBody = Static<typeof markMistagSchema>;
 
 export default async function routes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: GetSongQuery }>(
@@ -52,6 +70,53 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
       sendMetadataReport(request.user, song, request.body.additionalInfo);
+    }
+  );
+
+  fastify.post<{ Body: ApplyMBIDBody }>(
+    "/api/songs/applyMBID",
+    { schema: { body: applyMBIDSchema }, onRequest: fastify.authenticate },
+    async (request, reply) => {
+      if (request.user.accountType != 3) {
+        reply.status(403).send({ error: "Insufficient permissions" });
+      }
+
+      fastify.log.info(
+        `Applying MBID ${request.body.mbid} to song ${request.body.id}, requested by user ${request.user.id}`
+      );
+
+      await tagByMBID(request.body.id, request.body.mbid);
+      return { success: true };
+    }
+  );
+
+  fastify.post<{ Body: MarkMistagBody }>(
+    "/api/songs/markMistag",
+    { schema: { body: markMistagSchema }, onRequest: fastify.authenticate },
+    async (request, reply) => {
+      if (request.user.accountType != 3) {
+        reply.status(403).send({ error: "Insufficient permissions" });
+      }
+
+      fastify.log.info(
+        `Marking song ${request.body.id} as mistagged, requested by user ${request.user.id}`
+      );
+
+      await prisma.song.update({
+        where: {
+          id: request.body.id,
+        },
+        data: {
+          mistagLock: true,
+          mbid: null,
+          musicbrainzLength: null,
+          musicbrainzArtist: null,
+          musicbrainzTitle: null,
+          coverUrl: null,
+          smallCoverUrl: null,
+        },
+      });
+      return { success: true };
     }
   );
 }
