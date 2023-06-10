@@ -10,10 +10,8 @@ COPY yarn.lock ./
 COPY .yarnrc.yml ./
 COPY prisma ./prisma/
 
-RUN yarn install
-# If you are building your code for production
-RUN npm ci --omit=dev
-# RUN npm run build
+RUN yarn install --frozen-lockfile --production=true
+RUN npm run build
 
 # Generate Prisma client for DB stuff
 RUN npx prisma generate
