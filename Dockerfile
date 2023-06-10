@@ -11,13 +11,15 @@ COPY .yarnrc.yml ./
 COPY prisma ./prisma/
 
 RUN yarn install
-RUN npm run build
+
 
 # Generate Prisma client for DB stuff
 RUN npx prisma generate
 
 # Bundle app source
 COPY . .
+
+RUN npm run build
 
 EXPOSE 5000
 CMD [ "npm", "start" ]
