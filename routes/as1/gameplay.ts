@@ -5,6 +5,7 @@ import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
 import crypto from "crypto";
 import { addMusicBrainzInfo } from "../../util/musicbrainz";
+import { removeTagsFromTitle, tagsFromTitle } from "../../util/gamemodeTags";
 
 const xmlBuilder = new xml2js.Builder();
 
@@ -119,6 +120,9 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
   if (artist.toLowerCase() == "unknown" || title.toLowerCase() == "unknown")
     throw new Error("Invalid song title or artist.");
 
+  const gamemodeTags: string[] = tagsFromTitle(title);
+  if (gamemodeTags.length > 0) title = removeTagsFromTitle(title);
+
   let song: Song = await prisma.song.findFirst({
     where: {
       AND: [
@@ -154,6 +158,13 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
             },
           ],
         },
+        ...(gamemodeTags.length > 0 && [
+          {
+            tags: {
+              equals: gamemodeTags,
+            },
+          },
+        ]),
       ],
     },
   });
@@ -162,6 +173,7 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
       data: {
         title: title,
         artist: artist,
+        ...(gamemodeTags.length > 0 && { tags: gamemodeTags }),
       },
     });
   }

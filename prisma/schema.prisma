@@ -35,6 +35,7 @@ model Song {
   id                Int     @id @default(autoincrement())
   title             String
   artist            String
+  tags              String[]
   mbid              String?
   musicbrainzTitle  String?
   musicbrainzArtist String?
@@ -44,6 +45,8 @@ model Song {
   smallCoverUrl     String?
   scores            Score[]
   shouts            Shout[]
+
+  @@unique([title, artist, tags])
 }
 
 model Score {
