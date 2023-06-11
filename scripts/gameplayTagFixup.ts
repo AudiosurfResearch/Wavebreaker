@@ -3,8 +3,6 @@ import { removeTagsFromTitle, tagsFromTitle } from "../util/gamemodeTags";
 const prisma = new PrismaClient();
 
 async function main() {
-  const args = process.argv.slice(2);
-
   const songs = await prisma.song.findMany({
     where: {
       title: {

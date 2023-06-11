@@ -158,13 +158,11 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
             },
           ],
         },
-        ...(gamemodeTags.length > 0 && [
-          {
-            tags: {
-              equals: gamemodeTags,
-            },
+        {
+          tags: {
+            equals: gamemodeTags,
           },
-        ]),
+        },
       ],
     },
   });
