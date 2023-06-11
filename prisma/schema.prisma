@@ -32,15 +32,15 @@ model User {
 }
 
 model Song {
-  id                Int     @id @default(autoincrement())
+  id                Int      @id @default(autoincrement())
   title             String
   artist            String
-  tags              String[]
+  tags              String[] @default([])
   mbid              String?
   musicbrainzTitle  String?
   musicbrainzArtist String?
   musicbrainzLength Int?
-  mistagLock        Boolean @default(false)
+  mistagLock        Boolean  @default(false)
   coverUrl          String?
   smallCoverUrl     String?
   scores            Score[]
