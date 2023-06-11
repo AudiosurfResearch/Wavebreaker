@@ -322,6 +322,7 @@ export default async function routes(fastify: FastifyInstance) {
       request.body.submitcode,
       score.playCount
     );
+    fastify.log.info("Song tags: " + song.tags);
 
     return xmlBuilder.buildObject({
       RESULT: {
