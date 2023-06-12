@@ -145,7 +145,7 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{ Body: RivalParams }>(
     "/api/users/addRival",
     {
-      schema: { querystring: rivalParamsSchema },
+      schema: { body: rivalParamsSchema },
       onRequest: fastify.authenticate,
     },
     async (request, reply) => {
@@ -168,7 +168,7 @@ export default async function routes(fastify: FastifyInstance) {
   fastify.post<{ Body: RivalParams }>(
     "/api/users/removeRival",
     {
-      schema: { querystring: rivalParamsSchema },
+      schema: { body: rivalParamsSchema },
       onRequest: fastify.authenticate,
     },
     async (request, reply) => {
