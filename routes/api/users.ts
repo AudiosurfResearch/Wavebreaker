@@ -144,7 +144,10 @@ export default async function routes(fastify: FastifyInstance) {
 
   fastify.post<{ Body: RivalParams }>(
     "/api/users/addRival",
-    { onRequest: fastify.authenticate },
+    {
+      schema: { querystring: rivalParamsSchema },
+      onRequest: fastify.authenticate,
+    },
     async (request, reply) => {
       await prisma.user.update({
         where: {
@@ -164,7 +167,10 @@ export default async function routes(fastify: FastifyInstance) {
 
   fastify.post<{ Body: RivalParams }>(
     "/api/users/removeRival",
-    { onRequest: fastify.authenticate },
+    {
+      schema: { querystring: rivalParamsSchema },
+      onRequest: fastify.authenticate,
+    },
     async (request, reply) => {
       await prisma.user.update({
         where: {
@@ -184,7 +190,10 @@ export default async function routes(fastify: FastifyInstance) {
 
   fastify.get<{ Querystring: RivalParams }>(
     "/api/users/isRival",
-    { onRequest: fastify.authenticate },
+    {
+      schema: { querystring: rivalParamsSchema },
+      onRequest: fastify.authenticate,
+    },
     async (request, reply) => {
       const user = await prisma.user.findFirst({
         where: {
