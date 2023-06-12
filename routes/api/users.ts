@@ -205,8 +205,8 @@ export default async function routes(fastify: FastifyInstance) {
           },
         },
       });
-      if (user) reply.status(204).send({ isRival: true });
-      else reply.status(204).send({ isRival: false });
+      if (user) return { isRival: true };
+      else return { isRival: false };
     }
   );
 }
