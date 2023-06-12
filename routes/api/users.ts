@@ -205,7 +205,7 @@ export default async function routes(fastify: FastifyInstance) {
     async (request) => {
       const user = await prisma.user.findMany({
         where: {
-          id: request.query.id,
+          id: request.user.id,
           rivals: {
             some: {
               id: request.query.id,
