@@ -97,6 +97,11 @@ fastify.setErrorHandler(function (error, request, reply) {
     reply.status(404).send({ error: "Not found" });
   }
 
+  if (error.statusCode === 401) {
+    reply.code(401).send({ error: "Unauthorized" });
+    return;
+  }
+
   if (error.code === "FST_ERR_VALIDATION") {
     // Fastify validation error
     reply.status(400).send({ error: "Request validation failed." });

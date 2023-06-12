@@ -18,8 +18,16 @@ const searchUserQuerySchema = Type.Object(
   { additionalProperties: false }
 );
 
+const addOrRemoveRivalSchema = Type.Object(
+  {
+    id: Type.Number(),
+  },
+  { additionalProperties: false }
+);
+
 type GetUserQuery = Static<typeof getUserQuerySchema>;
 type SearchUserQuery = Static<typeof searchUserQuerySchema>;
+type AddOrRemoveRival = Static<typeof addOrRemoveRivalSchema>;
 
 interface ExtendedUser extends User {
   totalScore: number;
@@ -114,6 +122,82 @@ export default async function routes(fastify: FastifyInstance) {
         User[]
       >`SELECT * FROM "User" ORDER BY similarity(username, ${request.query.query}) DESC LIMIT 10;`;
       return { results };
+    }
+  );
+
+  fastify.get(
+    "/api/users/getOwnRivals",
+    { onRequest: fastify.authenticate },
+    async (request) => {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: request.user.id,
+        },
+        include: {
+          rivals: true,
+          challengers: true,
+        },
+      });
+      return { rivals: user.rivals, challengers: user.challengers };
+    }
+  );
+
+  fastify.post<{ Body: AddOrRemoveRival }>(
+    "/api/users/addRival",
+    { onRequest: fastify.authenticate },
+    async (request, reply) => {
+      await prisma.user.update({
+        where: {
+          id: request.user.id,
+        },
+        data: {
+          rivals: {
+            connect: {
+              id: request.body.id,
+            },
+          },
+        },
+      });
+      reply.status(204).send();
+    }
+  );
+
+  fastify.post<{ Body: AddOrRemoveRival }>(
+    "/api/users/removeRival",
+    { onRequest: fastify.authenticate },
+    async (request, reply) => {
+      await prisma.user.update({
+        where: {
+          id: request.user.id,
+        },
+        data: {
+          rivals: {
+            disconnect: {
+              id: request.body.id,
+            },
+          },
+        },
+      });
+      reply.status(204).send();
+    }
+  );
+
+  fastify.get<{ Querystring: AddOrRemoveRival }>(
+    "/api/users/isRival",
+    { onRequest: fastify.authenticate },
+    async (request, reply) => {
+      const user = await prisma.user.findFirst({
+        where: {
+          id: request.query.id,
+          rivals: {
+            some: {
+              id: request.user.id,
+            },
+          },
+        },
+      });
+      if (user) reply.status(204).send({ isRival: true });
+      else reply.status(204).send({ isRival: false });
     }
   );
 }
