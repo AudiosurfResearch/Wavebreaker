@@ -149,19 +149,23 @@ export default async function routes(fastify: FastifyInstance) {
       onRequest: fastify.authenticate,
     },
     async (request, reply) => {
-      await prisma.user.update({
-        where: {
-          id: request.user.id,
-        },
-        data: {
-          rivals: {
-            connect: {
-              id: request.body.id,
+      if (request.user.id == request.body.id) {
+        reply.status(400).send({ error: "You can't add yourself as a rival!" });
+      } else {
+        await prisma.user.update({
+          where: {
+            id: request.user.id,
+          },
+          data: {
+            rivals: {
+              connect: {
+                id: request.body.id,
+              },
             },
           },
-        },
-      });
-      reply.status(204).send();
+        });
+        reply.status(204).send();
+      }
     }
   );
 
@@ -172,19 +176,23 @@ export default async function routes(fastify: FastifyInstance) {
       onRequest: fastify.authenticate,
     },
     async (request, reply) => {
-      await prisma.user.update({
-        where: {
-          id: request.user.id,
-        },
-        data: {
-          rivals: {
-            disconnect: {
-              id: request.body.id,
+      if (request.user.id == request.body.id) {
+        reply.status(400).send({ error: "You can't add yourself as a rival!" });
+      } else {
+        await prisma.user.update({
+          where: {
+            id: request.user.id,
+          },
+          data: {
+            rivals: {
+              disconnect: {
+                id: request.body.id,
+              },
             },
           },
-        },
-      });
-      reply.status(204).send();
+        });
+        reply.status(204).send();
+      }
     }
   );
 
@@ -194,7 +202,7 @@ export default async function routes(fastify: FastifyInstance) {
       schema: { querystring: rivalParamsSchema },
       onRequest: fastify.authenticate,
     },
-    async (request, reply) => {
+    async (request) => {
       const user = await prisma.user.findFirst({
         where: {
           id: request.query.id,
