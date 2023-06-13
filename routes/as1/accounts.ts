@@ -1,17 +1,17 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, User } from "@prisma/client";
 import { prisma } from "../../util/db";
-import { Static, Type } from "@sinclair/typebox";
 import * as SteamUtils from "../../util/steam";
 import xml2js from "xml2js";
 import SteamID from "steamid";
+import { Static, Type } from "@sinclair/typebox";
 
 const xmlBuilder = new xml2js.Builder();
 
 const steamLoginRequestSchema = Type.Object(
   {
     steamusername: Type.String(),
-    snum: Type.Number(),
+    snum: Type.Integer(),
     s64: Type.String(),
     ticket: Type.String(),
   },
@@ -23,7 +23,7 @@ const updateLocationRequestSchema = Type.Object(
   {
     s64: Type.String(),
     ticket: Type.String(),
-    locationid: Type.Number(),
+    locationid: Type.Integer(),
   },
   { additionalProperties: false }
 );
@@ -32,7 +32,7 @@ type UpdateLocationRequest = Static<typeof updateLocationRequestSchema>;
 const steamSyncRequestSchema = Type.Object(
   {
     steamusername: Type.String(),
-    snum: Type.Number(),
+    snum: Type.Integer(),
     s64: Type.String(),
     ticket: Type.String(),
     snums: Type.String(),
