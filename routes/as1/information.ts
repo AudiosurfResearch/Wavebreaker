@@ -43,7 +43,7 @@ const customNewsSteamRequestSchema = Type.Object({
   snum: Type.Integer(),
   artist: Type.String(),
   song: Type.String(),
-  vehicle: Type.Integer(),
+  vehicle: Type.Integer({ minimum: 0, maximum: 17 }),
   userid: Type.Integer(),
   league: Type.Integer({ minimum: 0, maximum: 3 }),
   songid: Type.Integer(),
