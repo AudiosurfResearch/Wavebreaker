@@ -18,7 +18,8 @@ async function main() {
       .update({
         where: { id: song.id },
         data: {
-          coverUrl: song.coverUrl.replace("_thumb500.jpg", "_thumb.jpg"),
+          smallCoverUrl: song.coverUrl.replace("_thumb500.jpg", "_thumb.jpg"),
+          coverUrl: song.coverUrl.replace("_thumb.jpg", "_thumb500.jpg"),
         },
       })
       .then((song) => {
