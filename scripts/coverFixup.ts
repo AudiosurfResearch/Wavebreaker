@@ -1,13 +1,22 @@
-import { PrismaClient, Song } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
   const songs = await prisma.song.findMany({
     where: {
-      smallCoverUrl: null,
-      NOT: {
-        coverUrl: null,
-      },
+      OR: [
+        {
+          AND: [
+            { smallCoverUrl: null },
+            {
+              NOT: {
+                coverUrl: null,
+              },
+            },
+          ],
+        },
+        { coverUrl: { endsWith: "_thumb.jpg" } },
+      ],
     },
   });
 
