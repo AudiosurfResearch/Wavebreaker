@@ -130,7 +130,10 @@ function constructScoreResponseEntry(
 
 async function getOrCreateSong(title: string, artist: string): Promise<Song> {
   //Validation
-  if (artist.toLowerCase() == "unknown artist" || title.toLowerCase() == "unknown")
+  if (
+    artist.toLowerCase() == "unknown artist" ||
+    title.toLowerCase() == "unknown"
+  )
     throw new Error("Invalid song title or artist.");
 
   const gamemodeTags: string[] = tagsFromTitle(title);

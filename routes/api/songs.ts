@@ -3,6 +3,7 @@ import { prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
 import { sendMetadataReport } from "../../util/discord";
 import { tagByMBID } from "../../util/musicbrainz";
+import { Song } from "@prisma/client";
 
 const getSongQuerySchema = Type.Object(
   {
@@ -35,10 +36,18 @@ const markMistagSchema = Type.Object(
   { additionalProperties: false }
 );
 
+const searchSongQuerySchema = Type.Object(
+  {
+    query: Type.String(),
+  },
+  { additionalProperties: false }
+);
+
 type GetSongQuery = Static<typeof getSongQuerySchema>;
 type ReportMetadataBody = Static<typeof reportMetadataSchema>;
 type ApplyMBIDBody = Static<typeof applyMBIDSchema>;
 type MarkMistagBody = Static<typeof markMistagSchema>;
+type SearchSongQuery = Static<typeof searchSongQuerySchema>;
 
 export default async function routes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: GetSongQuery }>(
@@ -117,6 +126,18 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
       return { success: true };
+    }
+  );
+
+  fastify.get<{ Querystring: SearchSongQuery }>(
+    "/api/songs/searchSongs",
+    { schema: { querystring: searchSongQuerySchema } },
+    async (request) => {
+      // Indescribable pain.
+      const results = await prisma.$queryRaw<
+        Song[]
+      >` SELECT * FROM "Song" ORDER BY GREATEST(similarity(concat(artist, title), ${request.query.query}), similarity(concat("musicbrainzArtist", "musicbrainzTitle"), ${request.query.query})) DESC LIMIT 10;`;
+      return { results };
     }
   );
 }
