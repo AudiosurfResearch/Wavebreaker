@@ -20,37 +20,42 @@ export default async function routes(fastify: FastifyInstance) {
     };
   });
 
-  fastify.get("/api/server/getRadioSongs", async () => {
-    const WavebreakerRadioConfig = JSON.parse(
-      fs.readFileSync(
-        globalThis.__basedir + "/config/wavebreaker_radio_entries.json",
-        "utf-8"
-      )
-    );
-    if (WavebreakerRadioConfig.availableSongs.length == 0) return { songs: [] };
-
-    const radioEntries: RadioEntry[] = WavebreakerRadioConfig.availableSongs;
-    const ids = radioEntries.map((entry) => entry.wavebreakerId);
-
-    const songs = await prisma.song.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-    });
-    const songsWithUrls = songs as SongWithExternalUrl[];
-
-    //Add externalUrl to song
-    songsWithUrls.forEach((song) => {
-      const entry = radioEntries.find(
-        (entry) => entry.wavebreakerId == song.id
+  fastify.get(
+    "/api/server/getRadioSongs",
+    { onRequest: fastify.authenticate },
+    async () => {
+      const WavebreakerRadioConfig = JSON.parse(
+        fs.readFileSync(
+          globalThis.__basedir + "/config/wavebreaker_radio_entries.json",
+          "utf-8"
+        )
       );
-      if (entry) song.externalUrl = entry.externalUrl;
-    });
+      if (WavebreakerRadioConfig.availableSongs.length == 0)
+        return { songs: [] };
 
-    return {
-      songs: songsWithUrls,
-    };
-  });
+      const radioEntries: RadioEntry[] = WavebreakerRadioConfig.availableSongs;
+      const ids = radioEntries.map((entry) => entry.wavebreakerId);
+
+      const songs = await prisma.song.findMany({
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+      });
+      const songsWithUrls = songs as SongWithExternalUrl[];
+
+      //Add externalUrl to song
+      songsWithUrls.forEach((song) => {
+        const entry = radioEntries.find(
+          (entry) => entry.wavebreakerId == song.id
+        );
+        if (entry) song.externalUrl = entry.externalUrl;
+      });
+
+      return {
+        songs: songsWithUrls,
+      };
+    }
+  );
 }
