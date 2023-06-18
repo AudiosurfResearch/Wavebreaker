@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../../util/db";
+import { Song } from "@prisma/client";
 import fs from "fs";
 
 type RadioEntry = {
@@ -8,6 +9,10 @@ type RadioEntry = {
   artist: string;
   externalUrl: string;
   cgrFileUrl: string;
+};
+
+type SongWithExternalUrl = Song & {
+  externalUrl: string;
 };
 
 export default async function routes(fastify: FastifyInstance) {
@@ -41,10 +46,18 @@ export default async function routes(fastify: FastifyInstance) {
         },
       },
     });
+    const songsWithUrls = songs as SongWithExternalUrl[];
+
+    //Add externalUrl to song
+    songsWithUrls.forEach((song) => {
+      const entry = radioEntries.find(
+        (entry) => entry.wavebreakerId == song.id
+      );
+      if (entry) song.externalUrl = entry.externalUrl;
+    });
 
     return {
-      songs,
-      externalUrls: radioEntries.map((entry) => entry.externalUrl),
+      songs: songsWithUrls,
     };
   });
 }
