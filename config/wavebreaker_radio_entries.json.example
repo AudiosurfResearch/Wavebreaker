@@ -1,12 +1,14 @@
 {
     "availableSongs": [
         {
+            "wavebreakerId": 1,
             "artist": "Wavebreaker",
             "title": "Example entry 1",
             "cgrFileUrl": "http://yourhostname/as/asradio/Test1.cgr",
             "externalUrl": "https://github.com/AudiosurfResearch/Wavebreaker"
         },
         {
+            "wavebreakerId": 2,
             "artist": "Wavebreaker",
             "title": "Example entry 2",
             "cgrFileUrl": "http://somecdn/as/asradio/Test2.cgr",
