@@ -1,14 +1,6 @@
 import { FastifyInstance } from "fastify";
 import fs from "fs";
-
-type RadioEntry = {
-  wavebreakerId: number;
-  title: string;
-  artist: string;
-  externalUrl: string;
-  cgrFileUrl: string;
-};
-
+import { RadioEntry } from "../../@types/global";
 
 export default async function routes(fastify: FastifyInstance) {
   //idk why this uses POST but it does

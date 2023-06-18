@@ -14,4 +14,12 @@ declare module "@fastify/jwt" {
   }
 }
 
-export {};
+type RadioEntry = {
+  wavebreakerId: number;
+  title: string;
+  artist: string;
+  externalUrl: string;
+  cgrFileUrl: string;
+};
+
+export {RadioEntry};

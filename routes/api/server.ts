@@ -2,14 +2,7 @@ import { FastifyInstance } from "fastify";
 import { prisma } from "../../util/db";
 import { Song } from "@prisma/client";
 import fs from "fs";
-
-type RadioEntry = {
-  wavebreakerId: number;
-  title: string;
-  artist: string;
-  externalUrl: string;
-  cgrFileUrl: string;
-};
+import { RadioEntry } from "../../@types/global";
 
 type SongWithExternalUrl = Song & {
   externalUrl: string;
