@@ -38,16 +38,30 @@ export default async function routes(fastify: FastifyInstance) {
     }
   );
 
-  fastify.get("/api/auth/steam/return", async (request) => {
+  fastify.get("/api/auth/steam/return", async (request, reply) => {
     const steamUser = await steam.authenticate(request);
-    const user: User = await prisma.user.findUniqueOrThrow({
-      where: {
-        steamid64: steamUser.steamid,
-      },
-    });
-    
-    fastify.log.info("Steam login request for user %d", user.id);
-    const token = fastify.jwt.sign(user);
-    return { token: token };
+    try {
+      const user: User = await prisma.user.findUniqueOrThrow({
+        where: {
+          steamid64: steamUser.steamid,
+        },
+      });
+
+      fastify.log.info("Steam login request for user %d", user.id);
+      const token = fastify.jwt.sign(user);
+      return { token: token };
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === "P2025"
+      ) {
+        reply.status(404).send({
+          error:
+            "Not registered. Please play Audiosurf on this server to register automatically.",
+        });
+      } else {
+        throw e;
+      }
+    }
   });
 }
