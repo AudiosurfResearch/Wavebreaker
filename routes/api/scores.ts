@@ -86,4 +86,51 @@ export default async function routes(fastify: FastifyInstance) {
       }
     }
   );
+
+  fastify.get(
+    "/api/scores/getRivalActivity",
+    {
+      onRequest: fastify.authenticate,
+    },
+    async (request) => {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: request.user.id,
+        },
+        include: {
+          rivals: true,
+        },
+      });
+      const rivalScores = await prisma.score.findMany({
+        where: {
+          userId: {
+            in: user.rivals.map((rival) => rival.id),
+          },
+        },
+        include: {
+          song: true,
+          player: true,
+        },
+        orderBy: {
+          rideTime: "desc",
+        },
+        take: 10,
+      });
+      return rivalScores;
+    }
+  );
+
+  fastify.get("/api/scores/getRecentActivity", async (request) => {
+    const recentScores = await prisma.score.findMany({
+      include: {
+        song: true,
+        player: true,
+      },
+      orderBy: {
+        rideTime: "desc",
+      },
+      take: 10,
+    });
+    return recentScores;
+  });
 }

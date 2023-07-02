@@ -147,7 +147,6 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
             {
               title: {
                 equals: title,
-                mode: "insensitive",
               },
             },
             {
@@ -163,7 +162,6 @@ async function getOrCreateSong(title: string, artist: string): Promise<Song> {
             {
               artist: {
                 equals: artist,
-                mode: "insensitive",
               },
             },
             {
