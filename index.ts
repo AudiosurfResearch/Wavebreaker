@@ -18,6 +18,7 @@ import apiUsersRouter from "./routes/api/users";
 import apiServerRouter from "./routes/api/server";
 import apiScoresRouter from "./routes/api/scores";
 import apiSongsRouter from "./routes/api/songs";
+import apiShoutsRouter from "./routes/api/shouts";
 
 //Miscellaneous
 import fs from "fs";
@@ -122,3 +123,4 @@ fastify.register(apiUsersRouter);
 fastify.register(apiServerRouter);
 fastify.register(apiScoresRouter);
 fastify.register(apiSongsRouter);
+fastify.register(apiShoutsRouter);

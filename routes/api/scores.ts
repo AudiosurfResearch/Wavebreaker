@@ -30,8 +30,6 @@ export default async function routes(fastify: FastifyInstance) {
     "/api/scores/getScores",
     { schema: { querystring: getScoresQuerySchema } },
     async (request, reply) => {
-      fastify.log.info(request.query);
-
       const where = {
         ...(request.query.songId && {
           songId: request.query.songId,
@@ -120,7 +118,7 @@ export default async function routes(fastify: FastifyInstance) {
     }
   );
 
-  fastify.get("/api/scores/getRecentActivity", async (request) => {
+  fastify.get("/api/scores/getRecentActivity", async () => {
     const recentScores = await prisma.score.findMany({
       include: {
         song: true,
