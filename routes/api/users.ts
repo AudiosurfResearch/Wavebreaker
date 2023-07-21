@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
-import { Prisma, Song, User } from "@prisma/client";
-import { prisma } from "../../util/db";
+import { Prisma, User } from "@prisma/client";
+import { ExtendedUser, UserWithRank, getUserRank, prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
 
 const getUserQuerySchema = Type.Object(
@@ -28,13 +28,6 @@ const rivalParamsSchema = Type.Object(
 type GetUserQuery = Static<typeof getUserQuerySchema>;
 type SearchUserQuery = Static<typeof searchUserQuerySchema>;
 type RivalParams = Static<typeof rivalParamsSchema>;
-
-interface ExtendedUser extends User {
-  totalScore: number;
-  totalPlays: number;
-  favoriteCharacter?: number;
-  favoriteSong?: Song;
-}
 
 async function getExtendedInfo(userBase: User): Promise<User> {
   //Get user's total score and total plays
@@ -103,7 +96,9 @@ export default async function routes(fastify: FastifyInstance) {
           return await getExtendedInfo(userBase);
         }
 
-        return userBase;
+        const user = userBase as UserWithRank;
+        user.rank = await getUserRank(id);
+        return user;
       } catch (e) {
         if (
           e instanceof Prisma.PrismaClientKnownRequestError &&
