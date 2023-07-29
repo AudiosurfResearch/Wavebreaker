@@ -135,6 +135,6 @@ export default async function routes(fastify: FastifyInstance) {
     if (recentScores.length === 0) {
       reply.code(204);
       return;
-    } else recentScores;
+    } else return recentScores;
   });
 }
