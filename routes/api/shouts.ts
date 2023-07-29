@@ -89,17 +89,17 @@ export default async function routes(fastify: FastifyInstance) {
         reply.status(404).send({ error: "Shout not found" });
       } else {
         if (
-          shout.authorId !== request.user.id ||
+          shout.authorId === request.user.id ||
           request.user.accountType < 2
         ) {
-          reply.status(403).send({ error: "Insufficient permissions" });
-        } else {
           await prisma.shout.delete({
             where: {
               id: request.body.id,
             },
           });
           reply.status(204);
+        } else {
+          reply.status(403).send({ error: "Insufficient permissions" });
         }
       }
     }
