@@ -90,8 +90,7 @@ export default async function routes(fastify: FastifyInstance) {
       } else {
         if (
           shout.authorId !== request.user.id ||
-          request.user.accountType == 2 ||
-          request.user.accountType == 3
+          request.user.accountType < 2
         ) {
           reply.status(403).send({ error: "Insufficient permissions" });
         } else {
