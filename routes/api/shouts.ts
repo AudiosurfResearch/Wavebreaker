@@ -90,7 +90,7 @@ export default async function routes(fastify: FastifyInstance) {
       } else {
         if (
           shout.authorId === request.user.id ||
-          request.user.accountType < 2
+          request.user.accountType > 1
         ) {
           await prisma.shout.delete({
             where: {
