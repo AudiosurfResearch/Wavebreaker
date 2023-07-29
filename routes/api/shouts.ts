@@ -19,7 +19,15 @@ const getSongShoutsQuerySchema = Type.Object(
   { additionalProperties: false }
 );
 
+const deleteShoutBodySchema = Type.Object(
+  {
+    id: Type.Number(),
+  },
+  { additionalProperties: false }
+);
+
 type GetSongShoutsQuery = Static<typeof getSongShoutsQuerySchema>;
+type DeleteShoutBody = Static<typeof deleteShoutBodySchema>;
 
 export default async function routes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: GetSongShoutsQuery }>(
@@ -53,12 +61,47 @@ export default async function routes(fastify: FastifyInstance) {
       ]);
 
       if (count === 0) {
-        reply.status(404).send({ error: "No shouts found" });
+        reply.status(204);
+        return;
       } else {
         return {
           shouts: shouts,
           totalCount: count,
         };
+      }
+    }
+  );
+
+  fastify.post<{ Body: DeleteShoutBody }>(
+    "/api/shouts/deleteShout",
+    {
+      onRequest: fastify.authenticate,
+      schema: { body: deleteShoutBodySchema },
+    },
+    async (request, reply) => {
+      const shout = await prisma.shout.findUnique({
+        where: {
+          id: request.body.id,
+        },
+      });
+
+      if (!shout) {
+        reply.status(404).send({ error: "Shout not found" });
+      } else {
+        if (
+          shout.authorId !== request.user.id ||
+          request.user.accountType == 2 ||
+          request.user.accountType == 3
+        ) {
+          reply.status(403).send({ error: "Insufficient permissions" });
+        } else {
+          await prisma.shout.delete({
+            where: {
+              id: request.body.id,
+            },
+          });
+          reply.status(204);
+        }
       }
     }
   );

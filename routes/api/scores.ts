@@ -90,7 +90,7 @@ export default async function routes(fastify: FastifyInstance) {
     {
       onRequest: fastify.authenticate,
     },
-    async (request) => {
+    async (request, reply) => {
       const user = await prisma.user.findUnique({
         where: {
           id: request.user.id,
@@ -114,11 +114,14 @@ export default async function routes(fastify: FastifyInstance) {
         },
         take: 10,
       });
-      return rivalScores;
+      if (rivalScores.length === 0) {
+        reply.code(204);
+        return;
+      } else return rivalScores;
     }
   );
 
-  fastify.get("/api/scores/getRecentActivity", async () => {
+  fastify.get("/api/scores/getRecentActivity", async (request, reply) => {
     const recentScores = await prisma.score.findMany({
       include: {
         song: true,
@@ -129,6 +132,9 @@ export default async function routes(fastify: FastifyInstance) {
       },
       take: 10,
     });
-    return recentScores;
+    if (recentScores.length === 0) {
+      reply.code(204);
+      return;
+    } else recentScores;
   });
 }
