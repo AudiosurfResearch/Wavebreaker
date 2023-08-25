@@ -169,7 +169,7 @@ export default async function routes(fastify: FastifyInstance) {
       switch (newsElementDecision) {
         case 0:
           newsElement =
-            "Looking for new songs?\nThese are popular on Wavebreaker:\n";
+            "Looking for new songs?\nThese are popular:\n";
           getPopularSongs(1, 5).then((songs) => {
             songs.forEach((song, index) => {
               newsElement += song.title + " by " + song.artist;

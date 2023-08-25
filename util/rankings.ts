@@ -6,7 +6,7 @@ export async function getPopularSongs(
   pageSize: number,
   sort: "asc" | "desc" = "desc"
 ): Promise<Song[]> {
-  return prisma.song.findMany({
+  return await prisma.song.findMany({
     take: pageSize,
     skip: (page - 1) * pageSize,
     include: {
