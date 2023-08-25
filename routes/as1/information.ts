@@ -167,18 +167,17 @@ export default async function routes(fastify: FastifyInstance) {
       const newsElementDecision = Math.floor(Math.random() * 0);
       let newsElement = "Enjoy the ride!";
       switch (newsElementDecision) {
-        case 0:
-          newsElement =
-            "Looking for new songs?\nThese are popular:\n";
-          getPopularSongs(1, 5).then((songs) => {
-            songs.forEach((song, index) => {
-              newsElement += song.title + " by " + song.artist;
-              if (index != songs.length - 1) {
-                newsElement += "\n";
-              }
-            });
+        case 0: {
+          newsElement = "Looking for new songs?\nThese are popular:\n";
+          const songs = await getPopularSongs(1, 5);
+          songs.forEach((song, index) => {
+            newsElement += song.title + " by " + song.artist;
+            if (index != songs.length - 1) {
+              newsElement += "\n";
+            }
           });
           break;
+        }
       }
 
       return xmlBuilder.buildObject({
