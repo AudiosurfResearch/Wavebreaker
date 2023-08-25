@@ -4,6 +4,7 @@ import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
 import { prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
+import { getPopularSongs } from "../../util/rankings";
 
 const xmlBuilder = new xml2js.Builder();
 
@@ -162,10 +163,27 @@ export default async function routes(fastify: FastifyInstance) {
     "//as_steamlogin/game_CustomNews.php",
     { schema: { body: customNewsSteamRequestSchema } },
     async () => {
-      //TODO: proper implementation
+      //Placeholder, need to add more news elements to randomly pick
+      const newsElementDecision = Math.floor(Math.random() * 0);
+      let newsElement = "Enjoy the ride!";
+      switch (newsElementDecision) {
+        case 0:
+          newsElement =
+            "Looking for new songs?\nThese are popular on Wavebreaker:\n";
+          getPopularSongs(1, 5).then((songs) => {
+            songs.forEach((song, index) => {
+              newsElement += song.title + " by " + song.artist;
+              if (index != songs.length - 1) {
+                newsElement += "\n";
+              }
+            });
+          });
+          break;
+      }
+
       return xmlBuilder.buildObject({
         RESULTS: {
-          TEXT: "Is it me or am I\nsimply dreaming this time?",
+          TEXT: "Welcome to Wavebreaker!\n" + newsElement,
         },
       });
     }

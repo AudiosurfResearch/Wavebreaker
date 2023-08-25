@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Static, Type } from "@sinclair/typebox";
 import { StringEnum } from "../../util/schemaTypes";
-import { prisma } from "../../util/db";
+import { getPopularSongs } from "../../util/rankings";
 
 const getSongRankingsQuerySchema = Type.Object(
   {
@@ -23,20 +23,7 @@ export default async function routes(fastify: FastifyInstance) {
     "/api/rankings/songs",
     { schema: { querystring: getSongRankingsQuerySchema } },
     async (request) => {
-      return prisma.song.findMany({
-        take: request.query.pageSize,
-        skip: (request.query.page - 1) * request.query.pageSize,
-        include: {
-          _count: {
-            select: { scores: true },
-          },
-        },
-        orderBy: {
-          scores: {
-            _count: request.query.sort,
-          },
-        },
-      });
+      return getPopularSongs(request.query.page, request.query.pageSize, request.query.sort);
     }
   );
 }
