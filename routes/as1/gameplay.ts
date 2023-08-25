@@ -339,7 +339,16 @@ export default async function routes(fastify: FastifyInstance) {
           },
           ...(prevScore &&
             prevScore.score < request.body.score && {
+              trackShape: request.body.trackshape,
+              xstats: request.body.xstats,
+              density: request.body.density,
+              vehicleId: request.body.vehicle,
               score: request.body.score,
+              feats: request.body.feats,
+              songLength: request.body.songlength,
+              goldThreshold: request.body.goldthreshold,
+              iss: request.body.iss,
+              isj: request.body.isj,
               rideTime: new Date(),
             }),
         },
