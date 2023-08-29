@@ -171,7 +171,7 @@ export default async function routes(fastify: FastifyInstance) {
           newsElement = "Looking for new songs?\nThese are popular:\n";
           const songs = await getPopularSongs(1, 5);
           songs.forEach((song, index) => {
-            newsElement += song.title + " by " + song.artist;
+            newsElement += song.artist + " - " + song.title;
             if (index != songs.length - 1) {
               newsElement += "\n";
             }
@@ -182,7 +182,7 @@ export default async function routes(fastify: FastifyInstance) {
 
       return xmlBuilder.buildObject({
         RESULTS: {
-          TEXT: "Welcome to Wavebreaker!\n" + newsElement,
+          TEXT: "Welcome to Wavebreaker!\n\n" + newsElement,
         },
       });
     }
