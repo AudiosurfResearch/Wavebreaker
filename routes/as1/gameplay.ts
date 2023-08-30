@@ -7,6 +7,7 @@ import crypto from "crypto";
 import { addMusicBrainzInfo } from "../../util/musicbrainz";
 import { removeTagsFromTitle, tagsFromTitle } from "../../util/gamemodeTags";
 import { Static, Type } from "@sinclair/typebox";
+import { calcSkillPoints } from "../../util/rankings";
 
 const xmlBuilder = new xml2js.Builder();
 
@@ -285,19 +286,17 @@ export default async function routes(fastify: FastifyInstance) {
         request.body.artist
       );
 
-      try {
-        if (!song.mbid) {
-          fastify.log.info(
-            `Looking up MusicBrainz info for song ${song.id} with length ${
-              request.body.songlength * 10
-            }`
-          );
-          await addMusicBrainzInfo(song, request.body.songlength * 10);
-        }
-      } catch (e) {
-        fastify.log.error(
-          `Failed to look up MusicBrainz info: ${e}\n${e.stack}`
+      if (!song.mbid) {
+        fastify.log.info(
+          `Looking up MusicBrainz info for song ${song.id} with length ${
+            request.body.songlength * 10
+          }`
         );
+        addMusicBrainzInfo(song, request.body.songlength * 10).catch((e) => {
+          fastify.log.error(
+            `Failed to look up MusicBrainz info: ${e}\n${e.stack}`
+          );
+        });
       }
 
       const prevScore = await prisma.score.findUnique({
@@ -329,6 +328,7 @@ export default async function routes(fastify: FastifyInstance) {
           feats: request.body.feats,
           songLength: request.body.songlength,
           goldThreshold: request.body.goldthreshold,
+          skillPoints: calcSkillPoints(request.body.score, request.body.goldthreshold, request.body.league),
           iss: request.body.iss,
           isj: request.body.isj,
           songId: request.body.songid,
@@ -347,6 +347,7 @@ export default async function routes(fastify: FastifyInstance) {
               feats: request.body.feats,
               songLength: request.body.songlength,
               goldThreshold: request.body.goldthreshold,
+              skillPoints: calcSkillPoints(request.body.score, request.body.goldthreshold, request.body.league),
               iss: request.body.iss,
               isj: request.body.isj,
               rideTime: new Date(),

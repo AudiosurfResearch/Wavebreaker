@@ -58,7 +58,8 @@ model Score {
   xstats        String
   density       Int
   vehicleId     Int
-  score         Int
+  score         Int     
+  skillPoints   Int
   rideTime      DateTime @default(now()) //NOTE: When sending to the game, get it as UNIX time, divide by 1000 and Math.floor it
   feats         String
   songLength    Int
