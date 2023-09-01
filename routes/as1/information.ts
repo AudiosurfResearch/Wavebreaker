@@ -162,7 +162,7 @@ export default async function routes(fastify: FastifyInstance) {
   }>(
     "//as_steamlogin/game_CustomNews.php",
     { schema: { body: customNewsSteamRequestSchema } },
-    async () => {
+    async (request) => {
       //Placeholder, need to add more news elements to randomly pick
       const newsElementDecision = Math.floor(Math.random() * 2);
       let newsElement = "Enjoy the ride!";
@@ -181,6 +181,9 @@ export default async function routes(fastify: FastifyInstance) {
 
         case 1: {
           const user = await prisma.user.findFirst({
+            where: {
+              id: request.body.userid,
+            },
             include: {
               rivals: true,
             },
