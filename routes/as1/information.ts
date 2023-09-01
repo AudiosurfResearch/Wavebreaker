@@ -164,7 +164,7 @@ export default async function routes(fastify: FastifyInstance) {
     { schema: { body: customNewsSteamRequestSchema } },
     async () => {
       //Placeholder, need to add more news elements to randomly pick
-      const newsElementDecision = Math.floor(Math.random() * 0);
+      const newsElementDecision = Math.floor(Math.random() * 2);
       let newsElement = "Enjoy the ride!";
       switch (newsElementDecision) {
         case 0: {
@@ -176,6 +176,45 @@ export default async function routes(fastify: FastifyInstance) {
               newsElement += "\n";
             }
           });
+          break;
+        }
+
+        case 1: {
+          const user = await prisma.user.findFirst({
+            include: {
+              rivals: true,
+            },
+          });
+          if (user.rivals.length > 0) {
+            //Pick random rival
+            const rival =
+              user.rivals[Math.floor(Math.random() * user.rivals.length)];
+            newsElement = "Recent rival activity of " + rival.username + ":\n";
+            const rivalScores = await prisma.score.findMany({
+              where: {
+                player: {
+                  id: rival.id,
+                },
+              },
+              orderBy: {
+                rideTime: "desc",
+              },
+              include: {
+                song: true,
+              },
+              take: 5,
+            });
+            rivalScores.forEach((score, index) => {
+              newsElement += score.song.artist + " - " + score.song.title;
+              if (index != rivalScores.length - 1) {
+                newsElement += "\n";
+              }
+            });
+          } else {
+            newsElement =
+              "You have no rivals yet!\nGo add some on the website!\nhttps://wavebreaker.arcadian.garden";
+          }
+
           break;
         }
       }
