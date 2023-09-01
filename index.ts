@@ -48,6 +48,7 @@ const logger = {
 };
 
 const fastify = Fastify({
+  trustProxy: WavebreakerConfig.reverseProxy,
   ...logger,
   //For HTTPS in production, please use nginx or whatever
   ...(process.env.NODE_ENV == "development" &&
