@@ -15,13 +15,13 @@ export const prisma = prismaOrig.$extends({
         if (score) {
           //create.score and update.score are the same, the latter has a weird secondary type so no comparisons allowed
           if (score.score < args.create.score) {
-            const diff = args.create.score - score.score;
+            const diff = args.create.skillPoints - score.skillPoints;
             await redis.zincrby("leaderboard", diff, score.userId);
           }
         } else {
           await redis.zincrby(
             "leaderboard",
-            args.create.score,
+            args.create.skillPoints,
             args.create.userId
           );
         }
