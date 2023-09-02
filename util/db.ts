@@ -19,7 +19,7 @@ export const prisma = prismaOrig.$extends({
             await redis.zincrby("leaderboard", diff, score.userId);
           }
         } else {
-          await redis.zadd(
+          await redis.zincrby(
             "leaderboard",
             args.create.score,
             args.create.userId
