@@ -52,6 +52,8 @@
     "fastify-https-redirect": "^1.0.4",
     "musicbrainz-api": "^0.10.3",
     "node-steam-openid": "^1.2.0",
+    "redis": "^4.6.8",
+    "redis-om": "^0.4.2",
     "steamapi": "^2.4.2",
     "steamid": "^2.0.0",
     "xml2js": "^0.6.2"
