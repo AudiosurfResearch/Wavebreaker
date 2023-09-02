@@ -309,6 +309,23 @@ export default async function routes(fastify: FastifyInstance) {
         },
       });
 
+      const scoreComponent = {
+        trackShape: request.body.trackshape,
+        xstats: request.body.xstats,
+        density: request.body.density,
+        vehicleId: request.body.vehicle,
+        score: request.body.score,
+        feats: request.body.feats,
+        songLength: request.body.songlength,
+        goldThreshold: request.body.goldthreshold,
+        skillPoints: calcSkillPoints(
+          request.body.score,
+          request.body.goldthreshold,
+          request.body.league
+        ),
+        iss: request.body.iss,
+        isj: request.body.isj,
+      };
       const score = await prisma.score.upsert({
         where: {
           userId_leagueId_songId: {
@@ -320,22 +337,8 @@ export default async function routes(fastify: FastifyInstance) {
         create: {
           userId: user.id,
           leagueId: request.body.league,
-          trackShape: request.body.trackshape,
-          xstats: request.body.xstats,
-          density: request.body.density,
-          vehicleId: request.body.vehicle,
-          score: request.body.score,
-          feats: request.body.feats,
-          songLength: request.body.songlength,
-          goldThreshold: request.body.goldthreshold,
-          skillPoints: calcSkillPoints(
-            request.body.score,
-            request.body.goldthreshold,
-            request.body.league
-          ),
-          iss: request.body.iss,
-          isj: request.body.isj,
           songId: request.body.songid,
+          ...scoreComponent,
         },
         update: {
           playCount: {
@@ -343,22 +346,8 @@ export default async function routes(fastify: FastifyInstance) {
           },
           ...(prevScore &&
             prevScore.score < request.body.score && {
-              trackShape: request.body.trackshape,
-              xstats: request.body.xstats,
-              density: request.body.density,
-              vehicleId: request.body.vehicle,
-              score: request.body.score,
-              feats: request.body.feats,
-              songLength: request.body.songlength,
-              goldThreshold: request.body.goldthreshold,
-              skillPoints: calcSkillPoints(
-                request.body.score,
-                request.body.goldthreshold,
-                request.body.league
-              ),
-              iss: request.body.iss,
-              isj: request.body.isj,
               rideTime: new Date(),
+              ...scoreComponent,
             }),
         },
       });
