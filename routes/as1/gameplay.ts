@@ -328,7 +328,11 @@ export default async function routes(fastify: FastifyInstance) {
           feats: request.body.feats,
           songLength: request.body.songlength,
           goldThreshold: request.body.goldthreshold,
-          skillPoints: calcSkillPoints(request.body.score, request.body.goldthreshold, request.body.league),
+          skillPoints: calcSkillPoints(
+            request.body.score,
+            request.body.goldthreshold,
+            request.body.league
+          ),
           iss: request.body.iss,
           isj: request.body.isj,
           songId: request.body.songid,
@@ -347,7 +351,11 @@ export default async function routes(fastify: FastifyInstance) {
               feats: request.body.feats,
               songLength: request.body.songlength,
               goldThreshold: request.body.goldthreshold,
-              skillPoints: calcSkillPoints(request.body.score, request.body.goldthreshold, request.body.league),
+              skillPoints: calcSkillPoints(
+                request.body.score,
+                request.body.goldthreshold,
+                request.body.league
+              ),
               iss: request.body.iss,
               isj: request.body.isj,
               rideTime: new Date(),
@@ -391,87 +399,51 @@ export default async function routes(fastify: FastifyInstance) {
         );
 
         //Global scores
-        const fullScoreArray: ScoreWithPlayer[] = [];
-        fullScoreArray.push(
-          ...(await getSongScores(request.body.songid, 0, 0, 11))
-        );
-        fullScoreArray.push(
-          ...(await getSongScores(request.body.songid, 1, 0, 11))
-        );
-        fullScoreArray.push(
-          ...(await getSongScores(request.body.songid, 2, 0, 11))
-        );
-
-        const scoreResponseArray: object[] = [];
-        for (const score of fullScoreArray) {
-          scoreResponseArray.push(constructScoreResponseEntry(0, score));
+        const globalScores: ScoreWithPlayer[] = [];
+        for (let league = 0; league <= 2; league++) {
+          globalScores.push(
+            ...(await getSongScores(request.body.songid, league, 0, 11))
+          );
         }
 
         //Nearby scores
         const nearbyScores: ScoreWithPlayer[] = [];
-        nearbyScores.push(
-          ...(await getSongScores(
-            request.body.songid,
-            0,
-            request.body.locationid,
-            11
-          ))
-        );
-        nearbyScores.push(
-          ...(await getSongScores(
-            request.body.songid,
-            1,
-            request.body.locationid,
-            11
-          ))
-        );
-        nearbyScores.push(
-          ...(await getSongScores(
-            request.body.songid,
-            2,
-            request.body.locationid,
-            11
-          ))
-        );
-
-        for (const score of nearbyScores) {
-          scoreResponseArray.push(constructScoreResponseEntry(1, score));
+        for (let league = 0; league <= 2; league++) {
+          nearbyScores.push(
+            ...(await getSongScores(
+              request.body.songid,
+              league,
+              request.body.locationid,
+              11
+            ))
+          );
         }
 
-        //Rival scores
+        //Rival/Friend scores
         //Get the list of IDs of the user's rivals
         const rivalIds = user.rivals.map((rival) => rival.id);
         rivalIds.push(user.id); //So our own score is included, for easier comparison
 
         const friendScores: ScoreWithPlayer[] = [];
-        friendScores.push(
-          ...(await getSongScores(
-            request.body.songid,
-            1,
-            request.body.locationid,
-            11,
-            rivalIds
-          ))
-        );
-        friendScores.push(
-          ...(await getSongScores(
-            request.body.songid,
-            2,
-            request.body.locationid,
-            11,
-            rivalIds
-          ))
-        );
-        friendScores.push(
-          ...(await getSongScores(
-            request.body.songid,
-            3,
-            request.body.locationid,
-            11,
-            rivalIds
-          ))
-        );
+        for (let league = 0; league <= 2; league++) {
+          friendScores.push(
+            ...(await getSongScores(
+              request.body.songid,
+              league,
+              request.body.locationid,
+              11,
+              rivalIds
+            ))
+          );
+        }
 
+        const scoreResponseArray: object[] = [];
+        for (const score of globalScores) {
+          scoreResponseArray.push(constructScoreResponseEntry(0, score));
+        }
+        for (const score of nearbyScores) {
+          scoreResponseArray.push(constructScoreResponseEntry(1, score));
+        }
         for (const score of friendScores) {
           scoreResponseArray.push(constructScoreResponseEntry(2, score));
         }
