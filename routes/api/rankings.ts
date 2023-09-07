@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { Static, Type } from "@sinclair/typebox";
 import { StringEnum } from "../../util/schemaTypes";
 import { getLeaderboard, getPopularSongs } from "../../util/rankings";
+import { prisma } from "../../util/db";
 
 const getSongRankingsQuerySchema = Type.Object(
   {
@@ -32,11 +33,14 @@ export default async function routes(fastify: FastifyInstance) {
     "/api/rankings/songs",
     { schema: { querystring: getSongRankingsQuerySchema } },
     async (request) => {
-      return getPopularSongs(
-        request.query.page,
-        request.query.pageSize,
-        request.query.sort
-      );
+      return {
+        songs: getPopularSongs(
+          request.query.page,
+          request.query.pageSize,
+          request.query.sort
+        ),
+        totalCount: prisma.song.count(),
+      };
     }
   );
 
@@ -44,7 +48,10 @@ export default async function routes(fastify: FastifyInstance) {
     "/api/rankings/users",
     { schema: { querystring: getUserRankingsQuerySchema } },
     async (request) => {
-      return getLeaderboard(request.query.page, request.query.pageSize);
+      return {
+        users: getLeaderboard(request.query.page, request.query.pageSize),
+        totalCount: prisma.user.count(),
+      };
     }
   );
 }

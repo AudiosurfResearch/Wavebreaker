@@ -36,18 +36,23 @@ export const prisma = prismaOrig.$extends({
       },
     },
   },
+  //Hell holds no surprises for me anymore
   result: {
     user: {
       rank: {
         needs: { id: true },
-        async compute(user) {
-          return await getUserRank(user.id);
+        compute(user) {
+          return getUserRank(user.id).then((res) => {
+            return res;
+          });
         },
       },
       totalSkillPoints: {
         needs: { id: true },
-        async compute(user) {
-          return Number(await redis.zscore("leaderboard", user.id))
+        compute(user) {
+          return redis.zscore("leaderboard", user.id).then((res) => {
+            return Number(res);
+          });
         },
       },
     },
