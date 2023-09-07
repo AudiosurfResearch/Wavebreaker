@@ -5,18 +5,8 @@
   Maybe use Redis or something for the ranking stuff as well?
 */
 
-import { Song, User } from "@prisma/client";
+import { Song } from "@prisma/client";
 import { prisma, redis } from "./db";
-
-export interface UserWithRank extends User {
-  rank: number;
-}
-
-interface DBUserRank {
-  userId: number;
-  rank: bigint;
-  total_score: bigint;
-}
 
 export function calcSkillPoints(
   score: number,
@@ -46,6 +36,30 @@ export async function getPopularSongs(
       },
     },
   });
+}
+
+export async function getLeaderboard(page: number, pageSize: number) {
+  //Get leaderboard from Redis
+  const leaderboardUsers = (await redis.zrevrange(
+    "leaderboard",
+    (page - 1) * pageSize,
+    page * pageSize - 1,
+  )).map(Number);
+  //Get full users from Prisma
+  const users = await prisma.user.findMany({
+    where: {
+      id: {
+        in: leaderboardUsers,
+      },
+    },
+  });
+  //Order users in the same order as in the leaderboardUsers array
+  users.sort((a, b) => {
+    return (
+      leaderboardUsers.indexOf(a.id) - leaderboardUsers.indexOf(b.id)
+    );
+  });
+  return users;
 }
 
 export async function getUserRank(userId: number): Promise<number> {

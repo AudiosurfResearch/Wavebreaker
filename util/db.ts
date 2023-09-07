@@ -40,8 +40,14 @@ export const prisma = prismaOrig.$extends({
     user: {
       rank: {
         needs: { id: true },
-        compute(user) {
-          return getUserRank(user.id);
+        async compute(user) {
+          return await getUserRank(user.id);
+        },
+      },
+      totalSkillPoints: {
+        needs: { id: true },
+        async compute(user) {
+          return Number(await redis.zscore("leaderboard", user.id))
         },
       },
     },
