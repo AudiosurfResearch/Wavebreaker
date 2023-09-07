@@ -1,7 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, User } from "@prisma/client";
 import { ExtendedUser, prisma } from "../../util/db";
-import { getUserRank, UserWithRank } from "../../util/rankings";
 import { Static, Type } from "@sinclair/typebox";
 
 const getUserQuerySchema = Type.Object(
@@ -30,7 +29,7 @@ type GetUserQuery = Static<typeof getUserQuerySchema>;
 type SearchUserQuery = Static<typeof searchUserQuerySchema>;
 type RivalParams = Static<typeof rivalParamsSchema>;
 
-async function getExtendedInfo(userBase: User): Promise<User> {
+async function getExtendedInfo(userBase: User) {
   //Get user's total score and total plays
   const scoreAggregation = await prisma.score.aggregate({
     where: {
@@ -87,18 +86,16 @@ export default async function routes(fastify: FastifyInstance) {
     async (request, reply) => {
       const id = request.query.id;
       try {
-        const userBase: User = await prisma.user.findUniqueOrThrow({
+        const user = await prisma.user.findUniqueOrThrow({
           where: {
             id: id,
           },
         });
 
         if (request.query.getExtendedInfo) {
-          return await getExtendedInfo(userBase);
+          return await getExtendedInfo(user);
         }
 
-        const user = userBase as UserWithRank;
-        user.rank = await getUserRank(id);
         return user;
       } catch (e) {
         if (
