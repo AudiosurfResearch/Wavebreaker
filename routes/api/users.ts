@@ -1,7 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, User } from "@prisma/client";
-import { ExtendedUser, prisma } from "../../util/db";
+import { ExtendedUser, prisma, redis } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
+import { getUserRank } from "../../util/rankings";
 
 const getUserQuerySchema = Type.Object(
   {
@@ -44,6 +45,8 @@ async function getExtendedInfo(userBase: User) {
   const user: ExtendedUser = userBase as ExtendedUser;
   user.totalScore = scoreAggregation._sum.score ?? 0;
   user.totalPlays = scoreAggregation._sum.playCount ?? 0;
+  user.rank = await getUserRank(user.id);
+  user.totalSkillPoints = Number(await redis.zscore("leaderboard", user.id));
 
   //Get user's favorite song (or, rather, song of the score with the most plays)
   const favSongScore = await prisma.score.findFirst({

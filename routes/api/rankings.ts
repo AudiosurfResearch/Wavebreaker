@@ -34,12 +34,12 @@ export default async function routes(fastify: FastifyInstance) {
     { schema: { querystring: getSongRankingsQuerySchema } },
     async (request) => {
       return {
-        songs: getPopularSongs(
+        songs: await getPopularSongs(
           request.query.page,
           request.query.pageSize,
           request.query.sort
         ),
-        totalCount: prisma.song.count(),
+        totalCount: await prisma.song.count(),
       };
     }
   );
@@ -49,8 +49,8 @@ export default async function routes(fastify: FastifyInstance) {
     { schema: { querystring: getUserRankingsQuerySchema } },
     async (request) => {
       return {
-        users: getLeaderboard(request.query.page, request.query.pageSize),
-        totalCount: prisma.user.count(),
+        users: await getLeaderboard(request.query.page, request.query.pageSize),
+        totalCount: await prisma.user.count(),
       };
     }
   );

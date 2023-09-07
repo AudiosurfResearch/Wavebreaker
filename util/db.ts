@@ -1,6 +1,5 @@
 import { PrismaClient, Song, User } from "@prisma/client";
 import Redis from "ioredis";
-import { getUserRank } from "./rankings";
 
 export const redis = new Redis(process.env.REDIS_URL);
 
@@ -36,7 +35,7 @@ export const prisma = prismaOrig.$extends({
       },
     },
   },
-  //Hell holds no surprises for me anymore
+  /*
   result: {
     user: {
       rank: {
@@ -57,6 +56,7 @@ export const prisma = prismaOrig.$extends({
       },
     },
   },
+*/
 });
 
 export interface ExtendedUser extends User {
@@ -64,4 +64,6 @@ export interface ExtendedUser extends User {
   totalPlays: number;
   favoriteCharacter?: number;
   favoriteSong?: Song;
+  rank: number;
+  totalSkillPoints: number;
 }
