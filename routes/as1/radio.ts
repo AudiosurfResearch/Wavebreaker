@@ -19,7 +19,10 @@ export default async function routes(fastify: FastifyInstance) {
     //Join every radio entry's properties (and the entries themselves) with the separator
     const entriesString =
       radioEntries
-        .map((entry) => Object.values(entry).join(separator))
+        .map((entry) => {
+          delete entry.wavebreakerId;
+          Object.values(entry).join(separator);
+        })
         .join(separator) + separator;
 
     return entriesString;
