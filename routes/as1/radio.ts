@@ -20,8 +20,8 @@ export default async function routes(fastify: FastifyInstance) {
     const entriesString =
       radioEntries
         .map((entry) => {
-          delete entry.wavebreakerId;
-          Object.values(entry).join(separator);
+          delete entry.wavebreakerId; //ignore wavebreakerId property - irrelevant for the game and causes issues
+          return Object.values(entry).join(separator);
         })
         .join(separator) + separator;
 
