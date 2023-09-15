@@ -114,10 +114,11 @@ export default async function routes(fastify: FastifyInstance) {
     "/api/users/searchUsers",
     { schema: { querystring: searchUserQuerySchema } },
     async (request) => {
-      const results = await prisma.$queryRaw<
-        User[]
-      >`SELECT * FROM "User" ORDER BY similarity(username, ${request.query.query}) DESC LIMIT 10;`;
-      return { results };
+      return {
+        results: await prisma.$queryRaw<
+          User[]
+        >`SELECT * FROM "User" ORDER BY similarity(username, ${request.query.query}) DESC LIMIT 10;`,
+      };
     }
   );
 

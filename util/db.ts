@@ -27,10 +27,19 @@ export const prisma = prismaOrig.$extends({
         }
         return query(args);
       },
+      async delete({ args, query }) {
+        const score = await prisma.score.findUnique({ where: args.where });
+        if (score) {
+          await redis.zincrby("leaderboard", -score.skillPoints, score.userId);
+        }
+        return query(args);
+      },
     },
     user: {
-      async create({ args, query }) {
-        await redis.zadd("leaderboard", 0, args.data.id);
+      async upsert({ args, query }) {
+        const user = await prisma.user.findUnique({ where: args.where });
+        if (!user) return query(args);
+        await redis.zadd("leaderboard", 0, user.id);
         return query(args);
       },
     },

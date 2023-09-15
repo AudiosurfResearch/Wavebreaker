@@ -133,11 +133,11 @@ export default async function routes(fastify: FastifyInstance) {
     "/api/songs/searchSongs",
     { schema: { querystring: searchSongQuerySchema } },
     async (request) => {
-      // Indescribable pain.
-      const results = await prisma.$queryRaw<
-        Song[]
-      >` SELECT * FROM "Song" ORDER BY GREATEST(similarity(concat(artist, title), ${request.query.query}), similarity(concat("musicbrainzArtist", "musicbrainzTitle"), ${request.query.query})) DESC LIMIT 10;`;
-      return { results };
+      return {
+        results: await prisma.$queryRaw<
+          Song[]
+        >` SELECT * FROM "Song" ORDER BY GREATEST(similarity(concat(artist, title), ${request.query.query}), similarity(concat("musicbrainzArtist", "musicbrainzTitle"), ${request.query.query})) DESC LIMIT 10;`,
+      };
     }
   );
 }
