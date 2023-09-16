@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, User } from "@prisma/client";
-import { ExtendedUser, prisma, redis } from "../../util/db";
+import { ExtendedUser, getUserExtended, prisma, redis } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
 import { getUserRank } from "../../util/rankings";
 
@@ -30,58 +30,6 @@ type GetUserQuery = Static<typeof getUserQuerySchema>;
 type SearchUserQuery = Static<typeof searchUserQuerySchema>;
 type RivalParams = Static<typeof rivalParamsSchema>;
 
-async function getExtendedInfo(userBase: User) {
-  //Get user's total score and total plays
-  const scoreAggregation = await prisma.score.aggregate({
-    where: {
-      userId: userBase.id,
-    },
-    _sum: {
-      score: true,
-      playCount: true,
-    },
-  });
-
-  const user: ExtendedUser = userBase as ExtendedUser;
-  user.totalScore = scoreAggregation._sum.score ?? 0;
-  user.totalPlays = scoreAggregation._sum.playCount ?? 0;
-  user.rank = await getUserRank(user.id);
-  user.totalSkillPoints = Number(await redis.zscore("leaderboard", user.id));
-
-  //Get user's favorite song (or, rather, song of the score with the most plays)
-  const favSongScore = await prisma.score.findFirst({
-    where: {
-      userId: userBase.id,
-    },
-    orderBy: {
-      playCount: "desc",
-    },
-    include: {
-      song: true,
-    },
-  });
-  user.favoriteSong = favSongScore?.song;
-
-  //Get user's most used character
-  const charGroup = await prisma.score.groupBy({
-    by: ["vehicleId"],
-    where: {
-      userId: userBase.id,
-    },
-    _sum: {
-      playCount: true,
-    },
-    orderBy: {
-      _sum: {
-        playCount: "desc",
-      },
-    },
-  });
-
-  if (charGroup[0]) user.favoriteCharacter = charGroup[0].vehicleId;
-  return user;
-}
-
 export default async function routes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: GetUserQuery }>(
     "/api/users/getUser",
@@ -96,7 +44,7 @@ export default async function routes(fastify: FastifyInstance) {
         });
 
         if (request.query.getExtendedInfo) {
-          return await getExtendedInfo(user);
+          return await getUserExtended(user);
         }
 
         return user;

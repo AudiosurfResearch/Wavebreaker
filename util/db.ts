@@ -1,5 +1,6 @@
 import { PrismaClient, Song, User } from "@prisma/client";
 import Redis from "ioredis";
+import { getUserRank } from "./rankings";
 
 export const redis = new Redis(process.env.REDIS_URL);
 
@@ -68,11 +69,71 @@ export const prisma = prismaOrig.$extends({
 */
 });
 
-export interface ExtendedUser extends User {
+export async function getUserExtended(user: User): Promise<ExtendedUser> {
+  const scoreAggregation = await prisma.score.aggregate({
+    where: {
+      userId: user.id,
+    },
+    _sum: {
+      score: true,
+      playCount: true,
+    },
+  });
+
+  //Get user's favorite song (or, rather, song of the score with the most plays)
+  const favSongScore = await prisma.score.findFirst({
+    where: {
+      userId: user.id,
+    },
+    orderBy: {
+      playCount: "desc",
+    },
+    include: {
+      song: true,
+    },
+  });
+
+  //Get user's most used character
+  const charGroup = await prisma.score.groupBy({
+    by: ["vehicleId"],
+    where: {
+      userId: user.id,
+    },
+    _sum: {
+      playCount: true,
+    },
+    orderBy: {
+      _sum: {
+        playCount: "desc",
+      },
+    },
+  });
+
+  return {
+    ...(await getUserWithRank(user)),
+    totalScore: scoreAggregation._sum.score ?? 0,
+    totalPlays: scoreAggregation._sum.playCount ?? 0,
+    favoriteSong: favSongScore?.song,
+    ...(charGroup[0] && { favoriteCharacter: charGroup[0].vehicleId }),
+  };
+}
+
+export async function getUserWithRank(user: User): Promise<UserWithRank> {
+  return {
+    ...user,
+    rank: await getUserRank(user.id),
+    totalSkillPoints: Number(await redis.zscore("leaderboard", user.id)),
+  };
+}
+
+export interface UserWithRank extends User {
+  rank: number;
+  totalSkillPoints: number;
+}
+
+export interface ExtendedUser extends UserWithRank {
   totalScore: number;
   totalPlays: number;
   favoriteCharacter?: number;
   favoriteSong?: Song;
-  rank: number;
-  totalSkillPoints: number;
 }
