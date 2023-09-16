@@ -38,7 +38,7 @@ export const prisma = prismaOrig.$extends({
     user: {
       async upsert({ args, query }) {
         const user = await prisma.user.findUnique({ where: args.where });
-        if (!user) return query(args);
+        if (user) return query(args);
         await redis.zadd("leaderboard", 0, user.id);
         return query(args);
       },
