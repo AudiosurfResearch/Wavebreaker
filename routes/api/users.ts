@@ -1,8 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, User } from "@prisma/client";
-import { ExtendedUser, getUserExtended, prisma, redis } from "../../util/db";
+import { getUserExtended, prisma } from "../../util/db";
 import { Static, Type } from "@sinclair/typebox";
-import { getUserRank } from "../../util/rankings";
 
 const getUserQuerySchema = Type.Object(
   {

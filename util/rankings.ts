@@ -6,7 +6,7 @@
 */
 
 import { Song } from "@prisma/client";
-import { prisma, redis } from "./db";
+import { getUserWithRank, prisma, redis } from "./db";
 
 export function calcSkillPoints(
   score: number,
@@ -40,11 +40,13 @@ export async function getPopularSongs(
 
 export async function getLeaderboard(page: number, pageSize: number) {
   //Get leaderboard from Redis
-  const leaderboardUsers = (await redis.zrevrange(
-    "leaderboard",
-    (page - 1) * pageSize,
-    page * pageSize - 1,
-  )).map(Number);
+  const leaderboardUsers = (
+    await redis.zrevrange(
+      "leaderboard",
+      (page - 1) * pageSize,
+      page * pageSize - 1
+    )
+  ).map(Number);
   //Get full users from Prisma
   const users = await prisma.user.findMany({
     where: {
@@ -54,12 +56,12 @@ export async function getLeaderboard(page: number, pageSize: number) {
     },
   });
   //Order users in the same order as in the leaderboardUsers array
+  //and turn them into UserWithRank objects
   users.sort((a, b) => {
-    return (
-      leaderboardUsers.indexOf(a.id) - leaderboardUsers.indexOf(b.id)
-    );
+    return leaderboardUsers.indexOf(a.id) - leaderboardUsers.indexOf(b.id);
   });
-  return users;
+  const usersWithRank = await Promise.all(users.map(getUserWithRank));
+  return usersWithRank;
 }
 
 export async function getUserRank(userId: number): Promise<number> {
