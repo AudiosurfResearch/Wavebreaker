@@ -37,13 +37,11 @@ export const prisma = prismaOrig.$extends({
       },
     },
     user: {
-      async upsert({ args, query }) {
-        const user = await prisma.user.findUnique({ where: args.where });
-        if (user) return query(args);
-        await redis.zadd("leaderboard", 0, user.id);
+      async delete({ args, query }) {
+        await redis.zrem("leaderboard", args.where.id);
         return query(args);
-      },
-    },
+      }
+    }
   },
   /*
   result: {

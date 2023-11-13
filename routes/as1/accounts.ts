@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { Prisma, User } from "@prisma/client";
-import { prisma } from "../../util/db";
+import { prisma, redis } from "../../util/db";
 import * as SteamUtils from "../../util/steam";
 import xml2js from "xml2js";
 import SteamID from "steamid";
@@ -75,6 +75,10 @@ export default async function routes(fastify: FastifyInstance) {
           avatarUrlSmall: steamUser.avatar.small,
         },
       });
+
+      //If user isn't stored in Redis yet, we add them to the leaderboard with 0 skill points.
+      const redisPoints = await redis.zscore("leaderboard", user.id);
+      if (!redisPoints) await redis.zadd("leaderboard", 0, user.id);
 
       fastify.log.info("Game auth request for user %d", user.id);
       return xmlBuilder.buildObject({
