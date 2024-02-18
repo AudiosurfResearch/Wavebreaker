@@ -4,7 +4,7 @@ import { prisma } from "../../util/db";
 import xml2js from "xml2js";
 import * as SteamUtils from "../../util/steam";
 import crypto from "crypto";
-import { addMusicBrainzInfo } from "../../util/musicbrainz";
+import { addMusicBrainzInfo, tagByMBID } from "../../util/musicbrainz";
 import { removeTagsFromTitle, tagsFromTitle } from "../../util/gamemodeTags";
 import { Static, Type } from "@sinclair/typebox";
 import { calcSkillPoints } from "../../util/rankings";
@@ -44,6 +44,7 @@ const sendRideSteamRequestSchema = Type.Object(
     isj: Type.Integer(),
     s64: Type.String(),
     ticket: Type.String(),
+    mbid: Type.Optional(Type.String()),
   },
   { additionalProperties: false }
 );
@@ -281,10 +282,29 @@ export default async function routes(fastify: FastifyInstance) {
 
       const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
 
-      const song = await getOrCreateSong(
-        request.body.song,
-        request.body.artist
-      );
+      let song: Song;
+      if (request.body.mbid) {
+        fastify.log.info(
+          `User ${user.id} submitted a ride with MBID, using it for lookup first: ${request.body.mbid}`
+        );
+        song = await prisma.song.findFirst({
+          where: {
+            mbid: request.body.mbid,
+            tags: {
+              equals: tagsFromTitle(request.body.song), //Only look for songs with the same modifier tags!
+            },
+          },
+        });
+        if (!song) {
+          fastify.log.info(
+            "Song not found by MBID, looking up by title and artist."
+          );
+        }
+      }
+
+      if (!song || !request.body.mbid) {
+        song = await getOrCreateSong(request.body.song, request.body.artist);
+      }
 
       if (!song.mbid) {
         fastify.log.info(
@@ -292,11 +312,20 @@ export default async function routes(fastify: FastifyInstance) {
             request.body.songlength * 10
           }`
         );
-        addMusicBrainzInfo(song, request.body.songlength * 10).catch((e) => {
-          fastify.log.error(
-            `Failed to look up MusicBrainz info: ${e}\n${e.stack}`
+        if (request.body.mbid) {
+          fastify.log.info(
+            `Using user-provided MBID for song: ${request.body.mbid}`
           );
-        });
+          tagByMBID(song.id, request.body.mbid).catch((e) => {
+            fastify.log.error(`Failed to tag song by MBID: ${e}\n${e.stack}`);
+          });
+        } else {
+          addMusicBrainzInfo(song, request.body.songlength * 10).catch((e) => {
+            fastify.log.error(
+              `Failed to look up MusicBrainz info: ${e}\n${e.stack}`
+            );
+          });
+        }
       }
 
       const prevScore = await prisma.score.findUnique({
