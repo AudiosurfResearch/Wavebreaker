@@ -51,6 +51,7 @@ const customNewsSteamRequestSchema = Type.Object({
   songlength: Type.Integer(),
   s64: Type.String(),
   ticket: Type.String(),
+  wvbrversion: Type.Optional(Type.String()),
 });
 type CustomNewsSteamRequest = Static<typeof customNewsSteamRequestSchema>;
 
@@ -163,6 +164,14 @@ export default async function routes(fastify: FastifyInstance) {
     "//as_steamlogin/game_CustomNews.php",
     { schema: { body: customNewsSteamRequestSchema } },
     async (request) => {
+      if (!request.body.wvbrversion) {
+        return xmlBuilder.buildObject({
+          RESULTS: {
+            TEXT: "WARNING\nYOUR CLIENT MOD IS TOO OUTDATED!\nIn the future, you won't be able\nto connect anymore.\n\nPlease re-do the install guide:\nhttps://wavebreaker.arcadian.garden/installguide",
+          },
+        });
+      }
+
       //Placeholder, need to add more news elements to randomly pick
       const newsElementDecision = Math.floor(Math.random() * 2);
       let newsElement = "Enjoy the ride!";
