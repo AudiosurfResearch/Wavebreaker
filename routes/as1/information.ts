@@ -164,7 +164,7 @@ export default async function routes(fastify: FastifyInstance) {
     "//as_steamlogin/game_CustomNews.php",
     { schema: { body: customNewsSteamRequestSchema } },
     async (request) => {
-      if (!request.body.wvbrversion) {
+      if (!request.body.wvbrclientversion) {
         return xmlBuilder.buildObject({
           RESULTS: {
             TEXT: "WARNING\nYOUR CLIENT MOD IS TOO OUTDATED!\nIn the future, you won't be able\nto connect anymore.\n\nPlease re-do the install guide:\nhttps://wavebreaker.arcadian.garden/installguide",
