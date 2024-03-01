@@ -51,7 +51,7 @@ const customNewsSteamRequestSchema = Type.Object({
   songlength: Type.Integer(),
   s64: Type.String(),
   ticket: Type.String(),
-  wvbrversion: Type.Optional(Type.String()),
+  wvbrclientversion: Type.Optional(Type.String()),
 });
 type CustomNewsSteamRequest = Static<typeof customNewsSteamRequestSchema>;
 
