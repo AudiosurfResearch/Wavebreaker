@@ -14,6 +14,7 @@ const steamLoginRequestSchema = Type.Object(
     snum: Type.Integer(),
     s64: Type.String(),
     ticket: Type.String(),
+    wvbrclientversion: Type.String(),
   },
   { additionalProperties: false }
 );
