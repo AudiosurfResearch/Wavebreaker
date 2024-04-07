@@ -17,6 +17,7 @@ const fetchSongIdSteamRequestSchema = Type.Object(
     song: Type.String(),
     uid: Type.Integer(),
     league: Type.Integer({ minimum: 0, maximum: 2 }),
+    ticket: Type.String(),
   },
   { additionalProperties: false }
 );
@@ -209,8 +210,10 @@ export default async function routes(fastify: FastifyInstance) {
     "/as_steamlogin/game_fetchsongid_unicode.php",
     { schema: { body: fetchSongIdSteamRequestSchema } },
     async (request) => {
+      const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
+      
       fastify.log.info(
-        "Requesting song ID for " +
+        "User" + user.id "requesting song ID for " +
           request.body.artist +
           " - " +
           request.body.song
