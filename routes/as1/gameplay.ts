@@ -213,7 +213,7 @@ export default async function routes(fastify: FastifyInstance) {
       const user: User = await SteamUtils.findUserByTicket(request.body.ticket);
       
       fastify.log.info(
-        "User" + user.id "requesting song ID for " +
+        "User" + user.id + "requesting song ID for " +
           request.body.artist +
           " - " +
           request.body.song
