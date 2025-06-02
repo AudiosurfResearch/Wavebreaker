@@ -54,26 +54,31 @@ export default async function routes(fastify: FastifyInstance) {
         request.body.ticket
       );
       const steamId = new SteamID(steamTicketResponse.response.params.steamid);
-      const steamUser = await SteamUtils.steamApi.getUserSummary(
-        steamId.getSteamID64()
-      );
+      //const steamUser = await SteamUtils.steamApi.getUserSummary(
+      //  steamId.getSteamID64()
+      //);
 
+      const profileResponse = await fetch("https://steamcommunity.com/profiles/" + steamId.getSteamID64() + "?xml=1");
+      await xmlText = await profileResponse.text();
+      var parser = new xml2js.Parser();
+      let parsed = await parser.parseStringPromise(xmlText);
+      
       const user: User = await prisma.user.upsert({
         where: { steamid64: steamId.getSteamID64() },
         update: {
-          username: steamUser.nickname,
-          avatarUrl: steamUser.avatar.large,
-          avatarUrlMedium: steamUser.avatar.medium,
-          avatarUrlSmall: steamUser.avatar.small,
+          username: parsed.profile.steamID[0],
+          avatarUrl: parsed.profile.avatarFull[0],
+          avatarUrlMedium: parsed.profile.avatarMedium[0],
+          avatarUrlSmall: parsed.profile.avatarIcon[0],
         },
         create: {
-          username: steamUser.nickname,
+          username: parsed.profile.steamID[0],
           steamid64: steamId.getSteamID64(),
           steamid32: steamId.accountid,
           locationid: 1,
-          avatarUrl: steamUser.avatar.large,
-          avatarUrlMedium: steamUser.avatar.medium,
-          avatarUrlSmall: steamUser.avatar.small,
+          avatarUrl: parsed.profile.avatarFull[0],
+          avatarUrlMedium: parsed.profile.avatarMedium[0],
+          avatarUrlSmall: parsed.profile.avatarIcon[0],
         },
       });
 
