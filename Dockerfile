@@ -1,4 +1,4 @@
-FROM node:22.0.0-alpine
+FROM node:21-alpine
 
 WORKDIR /usr/src/wavebreaker
 
