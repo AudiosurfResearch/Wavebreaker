@@ -59,8 +59,8 @@ export default async function routes(fastify: FastifyInstance) {
       //);
 
       const profileResponse = await fetch("https://steamcommunity.com/profiles/" + steamId.getSteamID64() + "?xml=1");
-      await xmlText = await profileResponse.text();
-      var parser = new xml2js.Parser();
+      let xmlText = await profileResponse.text();
+      let parser = new xml2js.Parser();
       let parsed = await parser.parseStringPromise(xmlText);
       
       const user: User = await prisma.user.upsert({
