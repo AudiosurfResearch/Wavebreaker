@@ -27,7 +27,7 @@
   "homepage": "https://github.com/AudiosurfResearch/Wavebreaker#readme",
   "devDependencies": {
     "@types/node": "^20.5.9",
-    "@types/node-steam-openid": "^1.0.0",
+    "@types/node-steam-openid": "^1.0.3",
     "@types/steamapi": "^2.2.2",
     "@types/steamid": "^2.0.1",
     "@types/xml2js": "^0.4.11",
@@ -52,7 +52,7 @@
     "fastify-https-redirect": "^1.0.4",
     "ioredis": "^5.3.2",
     "musicbrainz-api": "^0.10.3",
-    "node-steam-openid": "^1.2.0",
+    "node-steam-openid": "^2.0.0",
     "steamapi": "^2.4.2",
     "steamid": "^2.0.0",
     "xml2js": "^0.6.2"
