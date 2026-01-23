@@ -1,3 +1,8 @@
+> [!WARNING]
+> This repository is in maintenance mode and will only be updated to patch critical security issues or bugs that render core functionality inoperable.
+> All future development will take place on the rewritten backend, [wavebreaker-rs](https://github.com/AudiosurfResearch/wavebreaker-rs).
+> Once wavebreaker-rs is ready to replace the current backend, this repository will be archived.
+
 <div align="center">
   <picture>
   <img alt="Wavebreaker logo" src="./.github/assets/wavebreaker_icon.png" width="25%" height="25%">
